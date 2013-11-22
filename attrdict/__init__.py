@@ -42,11 +42,6 @@ class AttrDict(Mapping):
             if self._valid_name(key):
                 setattr(self, key, self._build(value))
 
-        # In order for setattr to work, need a way of knowing when the
-        # object has been instantiated. At this point, key rules can
-        # apply.
-        self._finished_setup = True
-
     def get(self, key, default=None):
         """
         Get a value associated with a key.
@@ -122,8 +117,7 @@ class AttrDict(Mapping):
 
         Add a key-value pair as an attribute
         """
-        if key == '_finished_setup' or not (hasattr(self, '_finished_setup')
-                                            and self._finished_setup):
+        if not hasattr(self, '_mapping'):
             super(AttrDict, self).__setattr__(key, value)
         else:
             if not self._valid_name(key):

@@ -56,12 +56,14 @@ class TestAttrDict(unittest.TestCase):
         # not found, default given
         self.assertEqual(adict.get('bar', 'baz'), 'baz')
 
-    @unittest.skipUnless(PY2, "Python 2-specific tests")
     def test_iteration_2(self):
         """
         Test the iteration methods (items, keys, values[, iteritems,
         iterkeys, itervalues]).
         """
+        if not PY2:  # Python2.6 doesn't have skipif/skipunless
+            return
+
         from attrdict import AttrDict
 
         empty = AttrDict()
@@ -78,7 +80,7 @@ class TestAttrDict(unittest.TestCase):
         self.assertTrue(('lorem', 'ipsum') in items)
         self.assertTrue(('alpha', {'beta': 1, 'bravo': empty}) in items)
 
-        self.assertEqual(set(adict.keys()), {'foo', 'lorem', 'alpha'})
+        self.assertEqual(set(adict.keys()), set(['foo', 'lorem', 'alpha']))
 
         values = adict.values()
         self.assertEqual(len(values), 3)
@@ -111,12 +113,14 @@ class TestAttrDict(unittest.TestCase):
         self.assertFalse(isinstance(iterator, list))
         self.assertEqual(list(iterator), adict.values())
 
-    @unittest.skipIf(PY2, "Python 3-specific tests")
     def test_iteration_3(self):
         """
         Test the iteration methods (items, keys, values[, iteritems,
         iterkeys, itervalues]).
         """
+        if PY2:  # Python2.6 doesn't have skipif/skipunless
+            return
+
         from attrdict import AttrDict
 
         empty = AttrDict()
@@ -145,7 +149,7 @@ class TestAttrDict(unittest.TestCase):
 
         iterator = adict.keys()
         self.assertFalse(isinstance(iterator, list))
-        self.assertEqual(set(iterator), {'foo', 'lorem', 'alpha'})
+        self.assertEqual(set(iterator), set(['foo', 'lorem', 'alpha']))
 
         iterator = adict.values()
         self.assertFalse(isinstance(iterator, list))
@@ -194,8 +198,13 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict.alpha.beta, 1)
         self.assertEqual(adict['alpha'], {'beta': 1, 'bravo': 2})
 
-        with self.assertRaises(TypeError):
+        # with self.assertRaises(TypeError):
+        try:
             adict._no = "Won't work"
+        except TypeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
     def test_delattr(self):
         """
@@ -207,20 +216,45 @@ class TestAttrDict(unittest.TestCase):
 
         del adict.foo
 
-        with self.assertRaises(AttributeError):
+        # with self.assertRaises(AttributeError):
+        try:
             adict.foo
+        except AttributeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
-        with self.assertRaises(KeyError):
+        # with self.assertRaises(KeyError):
+        try:
             adict['foo']
+        except KeyError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
-        with self.assertRaises(TypeError):
+        # with self.assertRaises(TypeError):
+        try:
             del adict.lorem
+        except TypeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
-        with self.assertRaises(TypeError):
+        # with self.assertRaises(TypeError):
+        try:
             del adict._set
+        except TypeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
-        with self.assertRaises(TypeError):
+        # with self.assertRaises(TypeError):
+        try:
             del adict.get
+        except TypeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
         # make sure things weren't deleted
         adict._set
@@ -258,14 +292,37 @@ class TestAttrDict(unittest.TestCase):
 
         del adict['foo']
 
-        with self.assertRaises(AttributeError):
+        # with self.assertRaises(AttributeError):
+        try:
             adict.foo
+        except AttributeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
-        with self.assertRaises(KeyError):
+        # with self.assertRaises(AttributeError):
+        try:
+            adict.foo
+        except AttributeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
+
+        # with self.assertRaises(KeyError):
+        try:
             adict['foo']
+        except KeyError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
-        with self.assertRaises(KeyError):
+        # with self.assertRaises(KeyError):
+        try:
             del adict['lorem']
+        except KeyError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
 
         del adict['_set']
         del adict['get']

@@ -111,7 +111,7 @@ class AttrDict(Mapping):
         """
         if key not in self._mapping:
             raise AttributeError(
-                "'{}' instance has no attribute '{}'".format(
+                "'{0}' instance has no attribute '{1}'".format(
                     self.__class__.__name__, key))
 
         return self._build(self._mapping[key])
@@ -127,7 +127,7 @@ class AttrDict(Mapping):
             super(AttrDict, self).__setattr__(key, value)
         else:
             if not self._valid_name(key):
-                raise TypeError("Invalid key: {}".format(repr(key)))
+                raise TypeError("Invalid key: {0}".format(repr(key)))
 
             self._set(key, value)
 
@@ -138,7 +138,7 @@ class AttrDict(Mapping):
         Remove a key-value pair as an attribute.
         """
         if not self._valid_name(key) or key not in self._mapping:
-            raise TypeError("Invalid key: {}".format(repr(key)))
+            raise TypeError("Invalid key: {0}".format(repr(key)))
 
         self._delete(key)
 
@@ -220,7 +220,7 @@ class AttrDict(Mapping):
         """
         Create a string representation of the AttrDict.
         """
-        return u"a{}".format(repr(self._mapping))
+        return u"a{0}".format(repr(self._mapping))
 
     @classmethod
     def _build(cls, obj):

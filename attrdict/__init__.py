@@ -8,7 +8,7 @@ import re
 from sys import version_info
 
 
-__all__ = ['AttributeDict']
+__all__ = ['AttrDict']
 
 
 if version_info < (3,):  # Python 2
@@ -26,23 +26,21 @@ class AttrDict(Mapping):
     A mapping object that allows access to its values both as keys, and
     as attributes (as long as the attribute name is valid).
     """
-    def __init__(self, mapping=None, copy=True):
+    def __init__(self, mapping=None):
         """
         mapping: (optional, None) The mapping object to use for the
-            instance.
-        copy: (optional, True) If mapping is given, whether to use it as
-            is, or to make a new instance fo the mapping object.
+            instance. Note that the mapping object itself is used, not a
+            copy. This means that you cannot clone an AttrDict using:
+            adict = AttrDict(adict)
         """
         if mapping is None:
             mapping = {}
-        elif copy:
-            mapping = dict(mapping)
 
         self._mapping = mapping
 
         for key, value in mapping.iteritems() if PY2 else mapping.items():
             if self._valid_name(key):
-                setattr(self, key, self._build(value, copy=False))
+                setattr(self, key, self._build(value))
 
         # In order for setattr to work, need a way of knowing when the
         # object has been instantiated. At this point, key rules can
@@ -90,7 +88,7 @@ class AttrDict(Mapping):
 
         if self._valid_name(key):
             super(AttrDict, self).__setattr__(
-                key, self._build(value, copy=False))
+                key, self._build(value))
 
     def _delete(self, key):
         """
@@ -139,7 +137,7 @@ class AttrDict(Mapping):
 
         Remove a key-value pair as an attribute.
         """
-        if not self._valid_name(key):
+        if not self._valid_name(key) or key not in self._mapping:
             raise TypeError("Invalid key: {}".format(repr(key)))
 
         self._delete(key)
@@ -225,19 +223,14 @@ class AttrDict(Mapping):
         return u"a{}".format(repr(self._mapping))
 
     @classmethod
-    def _build(cls, object, copy=True):
+    def _build(cls, obj):
         """
         Wrap an object in an AttrDict as necessary. Mappings are
         wrapped, but all other objects are returned as is.
 
-        object: The object to (possibly) wrap.
-        copy: (optional, True) Copy the object on creation (if it is a
-            mapping).
+        obj: The object to (possibly) wrap.
         """
-        if isinstance(object, Mapping):
-            object = cls(object, copy=copy)
-
-        return object
+        return cls(obj) if isinstance(obj, Mapping) else obj
 
     @classmethod
     def _valid_name(cls, name):
@@ -257,12 +250,11 @@ class AttrDict(Mapping):
                 re.match('^[A-Za-z][A-Za-z0-9_]*$', name) and
                 not hasattr(cls, name))
 
-
-# Add missing iter methods in 2.X
-if PY2:
-    AttrDict.iteritems = lambda self: self._mapping.iteritems()
-    AttrDict.iterkeys = lambda self: self._mapping.iterkeys()
-    AttrDict.itervalues = lambda self: self._mapping.itervalues()
+    # Add missing iter methods in 2.X
+    if PY2:
+        iteritems = lambda self: self._mapping.iteritems()
+        iterkeys = lambda self: self._mapping.iterkeys()
+        itervalues = lambda self: self._mapping.itervalues()
 
 
 def combine(left, right):

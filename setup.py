@@ -8,5 +8,5 @@ setup(
     packages=["attrdict", "attrdict.test"],
     url="https://github.com/bcj/AttrDict",
     license="LICENSE.txt",
-    description="A dict with attribute access",
+    description="A dict with attribute-style access",
 )

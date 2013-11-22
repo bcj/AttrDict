@@ -246,9 +246,23 @@ class AttrDict(Mapping):
 
     # Add missing iter methods in 2.X
     if PY2:
-        iteritems = lambda self: self._mapping.iteritems()
-        iterkeys = lambda self: self._mapping.iterkeys()
-        itervalues = lambda self: self._mapping.itervalues()
+        def iteritems(self):
+            """
+            Iterate over (key, value) 2-tuples in the mapping
+            """
+            return self._mapping.iteritems()
+
+        def iterkeys(self):
+            """
+            Iterate over keys in the mapping
+            """
+            return self._mapping.iterkeys()
+
+        def itervalues(self):
+            """
+            Iterate over values in the mapping
+            """
+            return self._mapping.itervalues()
 
 
 def combine(left, right):

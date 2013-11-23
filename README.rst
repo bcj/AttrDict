@@ -52,6 +52,7 @@ An empty AttrDict can be created with::
     a = AttrDict()
 
 Or, you can pass an existing dict (or other type of Mapping object)::
+
     a = AttrDict({'foo': 'bar'})
 
 NOTE: Unlike dict, AttrDict will not clone on creation. AttrDict's

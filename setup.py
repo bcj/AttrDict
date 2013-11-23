@@ -9,4 +9,5 @@ setup(
     url="https://github.com/bcj/AttrDict",
     license="LICENSE.txt",
     description="A dict with attribute-style access",
+    long_description=open('README.rst').read(),
 )

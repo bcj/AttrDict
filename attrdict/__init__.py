@@ -8,7 +8,7 @@ import re
 from sys import version_info
 
 
-__all__ = ['AttrDict']
+__all__ = ['AttrDict', 'merge']
 
 
 if version_info < (3,):  # Python 2
@@ -195,7 +195,7 @@ class AttrDict(Mapping):
         if not isinstance(other, Mapping):
             return NotImplemented
 
-        return combine(self, other)
+        return merge(self, other)
 
     def __radd__(self, other):
         """
@@ -208,7 +208,7 @@ class AttrDict(Mapping):
         if not isinstance(other, Mapping):
             return NotImplemented
 
-        return combine(other, self)
+        return merge(other, self)
 
     def __repr__(self):
         """
@@ -265,33 +265,33 @@ class AttrDict(Mapping):
             return self._mapping.itervalues()
 
 
-def combine(left, right):
+def merge(left, right):
     """
-    Combine to mappings objects into a new AttrDict.
+    merge to mappings objects into a new AttrDict.
 
     left: The left mapping object.
     right: The right mapping object.
 
-    NOTE: This is not idempotent. combine(a, b) != combine(b, a).
+    NOTE: This is not idempotent. merge(a, b) != merge(b, a).
     """
-    combined = AttrDict()
+    merged = AttrDict()
 
     left_keys = set(left)
     right_keys = set(right)
 
     # Items only in the left object
     for key in (left_keys - right_keys):
-        combined[key] = left[key]
+        merged[key] = left[key]
 
     # Items only in the right object
     for key in (right_keys - left_keys):
-        combined[key] = right[key]
+        merged[key] = right[key]
 
     # In both
     for key in left_keys.intersection(right_keys):
         if isinstance(left[key], Mapping) and isinstance(right[key], Mapping):
-            combined[key] = combine(left[key], right[key])
+            merged[key] = merge(left[key], right[key])
         else:  # different types, overwrite with the right value
-            combined[key] = right[key]
+            merged[key] = right[key]
 
-    return combined
+    return merged

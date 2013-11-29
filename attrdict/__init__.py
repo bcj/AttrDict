@@ -3,7 +3,7 @@ AttrDict is a mapping object that allows access to its values both as
 keys, and as attributes (whenever the key can be used as an attribute
 name).
 """
-from collections import Mapping
+from collections import Mapping, MutableMapping
 import re
 from sys import version_info
 
@@ -21,7 +21,7 @@ else:
     STRING = str
 
 
-class AttrDict(Mapping):
+class AttrDict(MutableMapping):
     """
     A mapping object that allows access to its values both as keys, and
     as attributes (as long as the attribute name is valid).

@@ -3,7 +3,7 @@ AttrDict is a mapping object that allows access to its values both as
 keys, and as attributes (whenever the key can be used as an attribute
 name).
 """
-from collections import Mapping
+from collections import Mapping, MutableMapping, Sequence
 import re
 from sys import version_info
 
@@ -21,12 +21,12 @@ else:
     STRING = str
 
 
-class AttrDict(Mapping):
+class AttrDict(MutableMapping):
     """
     A mapping object that allows access to its values both as keys, and
     as attributes (as long as the attribute name is valid).
     """
-    def __init__(self, mapping=None):
+    def __init__(self, mapping=None, recursive=True):
         """
         mapping: (optional, None) The mapping object to use for the
             instance. Note that the mapping object itself is used, not a
@@ -36,11 +36,13 @@ class AttrDict(Mapping):
         if mapping is None:
             mapping = {}
 
+        self._recursive = recursive  # Has to happen before _mapping
         self._mapping = mapping
 
         for key, value in mapping.iteritems() if PY2 else mapping.items():
             if self._valid_name(key):
-                setattr(self, key, self._build(value))
+                setattr(self, key, self._build(
+                    value, recursive=self._recursive))
 
     def get(self, key, default=None):
         """
@@ -83,7 +85,7 @@ class AttrDict(Mapping):
 
         if self._valid_name(key):
             super(AttrDict, self).__setattr__(
-                key, self._build(value))
+                key, self._build(value, recursive=self._recursive))
 
     def _delete(self, key):
         """
@@ -109,7 +111,7 @@ class AttrDict(Mapping):
                 "'{0}' instance has no attribute '{1}'".format(
                     self.__class__.__name__, key))
 
-        return self._build(self._mapping[key])
+        return self._build(self._mapping[key], recursive=self._recursive)
 
     def __setattr__(self, key, value):
         """
@@ -195,7 +197,9 @@ class AttrDict(Mapping):
         if not isinstance(other, Mapping):
             return NotImplemented
 
-        return merge(self, other)
+        recursive = not hasattr(other, '_recursive') or other._recursive
+
+        return merge(self, other, recursive=self._recursive and recursive)
 
     def __radd__(self, other):
         """
@@ -208,7 +212,7 @@ class AttrDict(Mapping):
         if not isinstance(other, Mapping):
             return NotImplemented
 
-        return merge(other, self)
+        return merge(other, self, recursive=self._recursive)
 
     def __repr__(self):
         """
@@ -217,14 +221,22 @@ class AttrDict(Mapping):
         return u"a{0}".format(repr(self._mapping))
 
     @classmethod
-    def _build(cls, obj):
+    def _build(cls, obj, recursive=True):
         """
         Wrap an object in an AttrDict as necessary. Mappings are
         wrapped, but all other objects are returned as is.
 
         obj: The object to (possibly) wrap.
+        recursive: (optional, True) Whether Sequences should have their
+            elements turned into attrdicts.
         """
-        return cls(obj) if isinstance(obj, Mapping) else obj
+        if isinstance(obj, Mapping):
+            obj = cls(obj, recursive=recursive)
+        elif recursive:
+            if isinstance(obj, Sequence) and not isinstance(obj, STRING):
+                obj = [cls._build(element, recursive=True) for element in obj]
+
+        return obj
 
     @classmethod
     def _valid_name(cls, name):
@@ -265,16 +277,18 @@ class AttrDict(Mapping):
             return self._mapping.itervalues()
 
 
-def merge(left, right):
+def merge(left, right, recursive=True):
     """
     merge to mappings objects into a new AttrDict.
 
     left: The left mapping object.
     right: The right mapping object.
+    recursive: (optional, True) Whether Sequences should have their
+        elements turned into attrdicts.
 
     NOTE: This is not idempotent. merge(a, b) != merge(b, a).
     """
-    merged = AttrDict()
+    merged = AttrDict(recursive=recursive)
 
     left_keys = set(left)
     right_keys = set(right)
@@ -290,7 +304,7 @@ def merge(left, right):
     # In both
     for key in left_keys.intersection(right_keys):
         if isinstance(left[key], Mapping) and isinstance(right[key], Mapping):
-            merged[key] = merge(left[key], right[key])
+            merged[key] = merge(left[key], right[key], recursive=recursive)
         else:  # different types, overwrite with the right value
             merged[key] = right[key]
 

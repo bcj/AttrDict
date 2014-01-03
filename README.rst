@@ -40,8 +40,7 @@ Or from Github::
 Documentation
 =============
 
-Documentation (such that it is) is available at
-https://github.com/bcj/AttrDict
+Documentation is available at https://github.com/bcj/AttrDict
 
 Usage
 =====
@@ -51,12 +50,12 @@ An empty AttrDict can be created with::
 
     a = AttrDict()
 
-Or, you can pass an existing dict (or other type of Mapping object)::
+Or, you can pass an existing ``dict`` (or other type of ``Mapping`` object)::
 
     a = AttrDict({'foo': 'bar'})
 
-NOTE: Unlike dict, AttrDict will not clone on creation. AttrDict's
-internal dict will be the same instance as the dict passed in.
+NOTE: Unlike ``dict``, AttrDict will not clone on creation. AttrDict's
+internal dictionary will be the same instance as the dict passed in.
 
 Access
 ------
@@ -112,7 +111,7 @@ dynamically access any key as an attribute)::
 Merging
 -------
 AttrDicts can be merged with eachother or other dict objects using the
-+ operator. For conflicting keys, the right dict's value will be
+``+`` operator. For conflicting keys, the right dict's value will be
 preferred, but in the case of two dictionary values, they will be
 recursively merged::
 
@@ -121,12 +120,43 @@ recursively merged::
     > AttrDict(a) + b
     {'foo': 'bar', 'lorem': 'ipsum', 'alpha': {'beta': 'a', 'bravo': 'b', 'a': 'b'}}
 
-NOTE: AttrDict's add is not idempotent, a + b != b + a::
+NOTE: AttrDict's add is not idempotent, ``a + b != b + a``::
 
     > a = {'foo': 'bar', 'alpha': {'beta': 'b', 'a': 0}}
     > b = {'lorem': 'ipsum', 'alpha': {'bravo': 'b', 'a': 1}}
     > b + AttrDict(a)
     {'foo': 'bar', 'lorem': 'ipsum', 'alpha': {'beta': 'a', 'bravo': 'b', 'a': }}
+
+Lists
+-----
+By default, items in lists (and other sequences) will be converted to AttrDicts::
+
+    > adict = AttrDict({'list': [{'value': 1}, 'value': 2]})
+    > for element in adict.list:
+    >     element.value
+    1
+    2
+
+This will not occur if you access the AttrDict as a dictionary::
+
+    > adict = AttrDict({'list': [{'value': 1}, 'value': 2]})
+    > for element in adict['list']:
+    >     isinstance(element, AttrDict)
+    False
+    False
+
+To disable this behavior globally, pass the attribute ``recursive=False`` to
+the constructor::
+
+    > adict = AttrDict({'list': [{'value': 1}, 'value': 2]}, recursive=False)
+    > for element in adict['list']:
+    >     isinstance(element, AttrDict)
+    False
+    False
+
+When merging an AttrDict with another mapping, this behavior will be disabled
+if at least one of the merged items is an AttrDict that has set ``recursive``
+to ``False``.
 
 License
 =======

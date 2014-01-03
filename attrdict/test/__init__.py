@@ -471,6 +471,50 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(return_results(**AttrDict()), {})
         self.assertEqual(return_results(**AttrDict(expected)), expected)
 
+    def test_lists(self):
+        """
+        Test that AttrDict handles list properly.
+        """
+        from attrdict import AttrDict
+
+        adict = AttrDict({'lists': [{'value': 1}, {'value': 2}]})
+
+        self.assertEqual(adict.lists[0].value, 1)
+        self.assertEqual(adict.lists[1].value, 2)
+
+        self.assertEqual(({} + adict).lists[0].value, 1)
+        self.assertEqual((adict + {}).lists[1].value, 2)
+
+        self.assertEqual((AttrDict(recursive=True) + adict).lists[0].value, 1)
+        self.assertEqual((adict + AttrDict(recursive=True)).lists[1].value, 2)
+
+        self.assertEqual([element.value for element in adict.lists], [1, 2])
+
+        self.assertEqual(adict('lists')[0].value, 1)
+
+        # Not recursive
+        adict = AttrDict({'lists': [{'value': 1}, {'value': 2}]},
+                         recursive=False)
+
+        self.assertFalse(isinstance(adict.lists[0], AttrDict))
+
+        self.assertFalse(isinstance(({} + adict).lists[0], AttrDict))
+        self.assertFalse(isinstance((adict + {}).lists[1], AttrDict))
+
+        self.assertFalse(
+            isinstance((AttrDict(recursive=True) + adict).lists[0], AttrDict))
+        self.assertFalse(
+            isinstance((adict + AttrDict(recursive=True)).lists[1], AttrDict))
+
+        self.assertFalse(isinstance((adict + adict).lists[0], AttrDict))
+
+        for element in adict.lists:
+            self.assertFalse(isinstance(element, AttrDict))
+
+        self.assertFalse(isinstance(adict('lists')[0], AttrDict))
+
+        # Dict access shouldn't produce an attrdict
+        self.assertFalse(isinstance(adict['lists'][0], AttrDict))
 
 if __name__ == '__main__':
     unittest.main()

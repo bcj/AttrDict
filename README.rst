@@ -120,7 +120,7 @@ recursively merged::
     > AttrDict(a) + b
     {'foo': 'bar', 'lorem': 'ipsum', 'alpha': {'beta': 'a', 'bravo': 'b', 'a': 'b'}}
 
-NOTE: AttrDict's add is not idempotent, ``a + b != b + a``::
+NOTE: AttrDict's add is not associative, ``a + b != b + a``::
 
     > a = {'foo': 'bar', 'alpha': {'beta': 'b', 'a': 0}}
     > b = {'lorem': 'ipsum', 'alpha': {'bravo': 'b', 'a': 1}}
@@ -158,6 +158,42 @@ When merging an AttrDict with another mapping, this behavior will be disabled
 if at least one of the merged items is an AttrDict that has set ``recursive``
 to ``False``.
 
+Cookbook
+========
+A common usage for AttrDict is to use it in combination with settings files to create hierarchical settings::
+
+    from attrdict import AttrDict
+    import yaml
+    
+    def load(*filenames):
+        """
+        Returns a settings dict built from a list of settings files.
+    
+        filenames: The names of any number of settings files.
+        """
+        settings = AttrDict()
+    
+        for filename in filenames:
+            with open(filename, 'r') as fileobj:
+                settings += yaml.safe_load(fileobj)
+    
+        return settings
+
+By accepting multiple files, settings can allow for default settings and provide overrides, e.g.::
+
+    # config.yaml =
+    # emergency:
+    #   email: everyone@example.com
+    #   message: Something went wrong
+    #
+    # user.yaml = 
+    # emergency:
+    #   email: user@example.com
+    settings = load('config.yaml', 'user.yaml')
+    
+    assert settings.email == 'user@example.com'
+    assert settings.message == 'Something went wrong'
+    
 License
 =======
 AttrDict is released under a MIT license.

@@ -127,9 +127,10 @@ NOTE: AttrDict's add is not idempotent, ``a + b != b + a``::
     > b + AttrDict(a)
     {'foo': 'bar', 'lorem': 'ipsum', 'alpha': {'beta': 'a', 'bravo': 'b', 'a': }}
 
-Lists
------
-By default, items in lists (and other sequences) will be converted to AttrDicts::
+Sequences
+---------
+By default, items in non-string Sequences (e.g. lists, tuples) will be
+converted to AttrDicts::
 
     > adict = AttrDict({'list': [{'value': 1}, 'value': 2]})
     > for element in adict.list:

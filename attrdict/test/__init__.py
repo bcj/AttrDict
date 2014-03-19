@@ -332,6 +332,42 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict.get('get', 'deleted'), 'deleted')
         self.assertEqual(adict, {})
 
+    def test_getitem(self):
+        """
+        Tests that getitem doesn't return an attrdict.
+        """
+        from attrdict import AttrDict
+
+        adict = AttrDict({'foo': {'bar': {'baz': 'lorem'}}})
+
+        # with self.assertRaises(AttributeError)
+        try:
+            adict['foo'].bar
+        except AttributeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
+
+        # with self.assertRaises(AttributeError)
+        try:
+            adict['foo']['bar'].baz
+        except AttributeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
+
+        adict = AttrDict({'foo': [{'bar': 'baz'}]})
+
+        # with self.assertRaises(AttributeError)
+        try:
+            adict['foo'][0].bar
+        except AttributeError:
+            pass  # expected
+        else:
+            raise AssertionError("Exception not thrown")
+
+
+
     def test_contains(self):
         """
         Test that contains works properly.
@@ -471,13 +507,17 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(return_results(**AttrDict()), {})
         self.assertEqual(return_results(**AttrDict(expected)), expected)
 
-    def test_lists(self):
+    def test_sequences(self):
         """
-        Test that AttrDict handles list properly.
+        Test that AttrDict handles Sequences properly.
         """
         from attrdict import AttrDict
 
-        adict = AttrDict({'lists': [{'value': 1}, {'value': 2}]})
+        adict = AttrDict({'lists': [{'value': 1}, {'value': 2}],
+                          'tuple': ({'value': 1}, {'value': 2})})
+
+        # lists
+        self.assertTrue(adict.lists, list)
 
         self.assertEqual(adict.lists[0].value, 1)
         self.assertEqual(adict.lists[1].value, 2)
@@ -492,8 +532,28 @@ class TestAttrDict(unittest.TestCase):
 
         self.assertEqual(adict('lists')[0].value, 1)
 
+        # tuple
+        self.assertTrue(adict.tuple, tuple)
+
+        self.assertEqual(adict.tuple[0].value, 1)
+        self.assertEqual(adict.tuple[1].value, 2)
+
+        self.assertTrue(adict.tuple, tuple)
+
+        self.assertEqual(({} + adict).tuple[0].value, 1)
+        self.assertEqual((adict + {}).tuple[1].value, 2)
+
+        self.assertTrue(({} + adict).tuple, tuple)
+        self.assertTrue((adict + {}).tuple, tuple)
+
+        self.assertEqual((AttrDict(recursive=True) + adict).tuple[0].value, 1)
+        self.assertEqual((adict + AttrDict(recursive=True)).tuple[1].value, 2)
+
+        self.assertEqual([element.value for element in adict.tuple], [1, 2])
+
         # Not recursive
-        adict = AttrDict({'lists': [{'value': 1}, {'value': 2}]},
+        adict = AttrDict({'lists': [{'value': 1}, {'value': 2}],
+                          'tuple': ({'value': 1}, {'value': 2})},
                          recursive=False)
 
         self.assertFalse(isinstance(adict.lists[0], AttrDict))
@@ -515,6 +575,26 @@ class TestAttrDict(unittest.TestCase):
 
         # Dict access shouldn't produce an attrdict
         self.assertFalse(isinstance(adict['lists'][0], AttrDict))
+
+        self.assertFalse(isinstance(adict.tuple[0], AttrDict))
+
+        self.assertFalse(isinstance(({} + adict).tuple[0], AttrDict))
+        self.assertFalse(isinstance((adict + {}).tuple[1], AttrDict))
+
+        self.assertFalse(
+            isinstance((AttrDict(recursive=True) + adict).tuple[0], AttrDict))
+        self.assertFalse(
+            isinstance((adict + AttrDict(recursive=True)).tuple[1], AttrDict))
+
+        self.assertFalse(isinstance((adict + adict).tuple[0], AttrDict))
+
+        for element in adict.tuple:
+            self.assertFalse(isinstance(element, AttrDict))
+
+        self.assertFalse(isinstance(adict('tuple')[0], AttrDict))
+
+        # Dict access shouldn't produce an attrdict
+        self.assertFalse(isinstance(adict['tuple'][0], AttrDict))
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,5 @@
+.coverage
+*.pyc
+MANIFEST
+build/*
+dist/*

@@ -41,8 +41,7 @@ class AttrDict(MutableMapping):
 
         for key, value in mapping.iteritems() if PY2 else mapping.items():
             if self._valid_name(key):
-                setattr(self, key, self._build(
-                    value, recursive=self._recursive))
+                setattr(self, key, value)
 
     def get(self, key, default=None):
         """
@@ -234,7 +233,13 @@ class AttrDict(MutableMapping):
             obj = cls(obj, recursive=recursive)
         elif recursive:
             if isinstance(obj, Sequence) and not isinstance(obj, STRING):
-                obj = [cls._build(element, recursive=True) for element in obj]
+                new = [cls._build(element, recursive=True) for element in obj]
+
+                # Attempt to convert the Sequence back to its original type
+                try:
+                    obj = obj.__class__(new)
+                except:
+                    obj = new
 
         return obj
 

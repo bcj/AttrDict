@@ -2,3 +2,4 @@ v0.1.0, 2013/11/22 -- Initial release.
 v0.1.1, 2013/11/22 -- Minor documentation fix.
 v0.2.0, 2014/01/03 -- Handle lists as attributes.
 v0.2.1, 2014/03/19 -- Bug Fixes: Sequences no longer converted to lists, dict-style access fixed
+v0.3.0, 2014/05/28 -- 100 coverage, tests moved out of install

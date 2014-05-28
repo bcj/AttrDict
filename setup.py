@@ -2,12 +2,12 @@ from distutils.core import setup
 
 setup(
     name="attrdict",
-    version="0.2.1",
+    version="0.3.0",
     author="Brendan Curran-Johnson",
     author_email="brendan@bcjbcj.ca",
-    packages=["attrdict", "attrdict.test"],
+    packages=["attrdict"],
     url="https://github.com/bcj/AttrDict",
-    license="LICENSE.txt",
+    license="MIT License",
     description="A dict with attribute-style access",
     long_description=open('README.rst').read(),
 )

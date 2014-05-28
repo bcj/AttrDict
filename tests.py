@@ -177,6 +177,15 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict('alpha').beta, 2)
         self.assertEqual(adict('alpha').bravo, {})
 
+        # Make sure call failes correctly
+        # with self.assertRaises(AttributeError)
+        try:
+            adict('fake')
+        except AttributeError:
+            pass  # this is what we want
+        else:
+            raise AssertionError("AttributeError not raised")
+
     def test_setattr(self):
         """
         Test that key-value pairs can be added/changes as attributes
@@ -366,8 +375,6 @@ class TestAttrDict(unittest.TestCase):
         else:
             raise AssertionError("Exception not thrown")
 
-
-
     def test_contains(self):
         """
         Test that contains works properly.
@@ -470,6 +477,24 @@ class TestAttrDict(unittest.TestCase):
         # Right AttrDict
         self.assertEqual(a + AttrDict(b), ab)
         self.assertEqual(b + AttrDict(a), ba)
+
+        # Defer on non-mappings
+        class NonMapping(object):
+            """
+            A non-mapping object to test NotImplemented
+            """
+            def __radd__(self, other):
+                return 'success'
+
+        self.assertEqual(AttrDict(a) + NonMapping(), 'success')
+
+        # with self.assertRaises(NotImplementedError)
+        try:
+            NonMapping + AttrDict(b)
+        except TypeError:
+            pass  # what we want to happen
+        else:
+            raise AssertionError("NotImplementedError not thrown")
 
     def test_build(self):
         """
@@ -595,6 +620,36 @@ class TestAttrDict(unittest.TestCase):
 
         # Dict access shouldn't produce an attrdict
         self.assertFalse(isinstance(adict['tuple'][0], AttrDict))
+
+    def test_repr(self):
+        """
+        Test that repr works appropriately.
+        """
+        from attrdict import AttrDict
+
+        self.assertEqual(repr(AttrDict()), 'a{}')
+        self.assertEqual(repr(AttrDict({'foo': 'bar'})), "a{'foo': 'bar'}")
+        self.assertEqual(
+            repr(AttrDict({'foo': {1: 2}})), "a{'foo': {1: 2}}")
+        self.assertEqual(
+            repr(AttrDict({'foo': AttrDict({1: 2})})), "a{'foo': a{1: 2}}")
+
+    def test_deepcopy(self):
+        """
+        test that attrdict supports deepcopy.
+        """
+        from copy import deepcopy
+
+        from attrdict import AttrDict
+
+        adict = AttrDict({'foo': {'bar': 'baz'}})
+        bdict = deepcopy(adict)
+        cdict = bdict
+
+        bdict.foo.lorem = 'ipsum'
+
+        self.assertNotEqual(adict, bdict)
+        self.assertEqual(bdict, cdict)
 
 if __name__ == '__main__':
     unittest.main()

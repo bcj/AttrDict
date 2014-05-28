@@ -235,11 +235,9 @@ class AttrDict(MutableMapping):
             if isinstance(obj, Sequence) and not isinstance(obj, STRING):
                 new = [cls._build(element, recursive=True) for element in obj]
 
-                # Attempt to convert the Sequence back to its original type
-                try:
-                    obj = obj.__class__(new)
-                except:
-                    obj = new
+                # This has to have a __class__. Only old-style classes
+                # don't, and none of them would subclass Sequence.
+                obj = obj.__class__(new)
 
         return obj
 

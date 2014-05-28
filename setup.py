@@ -5,7 +5,7 @@ setup(
     version="0.2.1",
     author="Brendan Curran-Johnson",
     author_email="brendan@bcjbcj.ca",
-    packages=["attrdict", "attrdict.test"],
+    packages=["attrdict"],
     url="https://github.com/bcj/AttrDict",
     license="LICENSE.txt",
     description="A dict with attribute-style access",

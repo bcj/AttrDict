@@ -623,7 +623,7 @@ class TestAttrDict(unittest.TestCase):
 
     def test_repr(self):
         """
-        Test that repr works appropriately
+        Test that repr works appropriately.
         """
         from attrdict import AttrDict
 
@@ -633,6 +633,23 @@ class TestAttrDict(unittest.TestCase):
             repr(AttrDict({'foo': {1: 2}})), "a{'foo': {1: 2}}")
         self.assertEqual(
             repr(AttrDict({'foo': AttrDict({1: 2})})), "a{'foo': a{1: 2}}")
+
+    def test_deepcopy(self):
+        """
+        test that attrdict supports deepcopy.
+        """
+        from copy import deepcopy
+
+        from attrdict import AttrDict
+
+        adict = AttrDict({'foo': {'bar': 'baz'}})
+        bdict = deepcopy(adict)
+        cdict = bdict
+
+        bdict.foo.lorem = 'ipsum'
+
+        self.assertNotEqual(adict, bdict)
+        self.assertEqual(bdict, cdict)
 
 if __name__ == '__main__':
     unittest.main()

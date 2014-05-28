@@ -366,8 +366,6 @@ class TestAttrDict(unittest.TestCase):
         else:
             raise AssertionError("Exception not thrown")
 
-
-
     def test_contains(self):
         """
         Test that contains works properly.

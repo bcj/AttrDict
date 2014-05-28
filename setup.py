@@ -7,7 +7,7 @@ setup(
     author_email="brendan@bcjbcj.ca",
     packages=["attrdict"],
     url="https://github.com/bcj/AttrDict",
-    license="LICENSE.txt",
+    license="MIT License",
     description="A dict with attribute-style access",
     long_description=open('README.rst').read(),
 )

@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="attrdict",
-    version="0.2.1",
+    version="0.3.0",
     author="Brendan Curran-Johnson",
     author_email="brendan@bcjbcj.ca",
     packages=["attrdict"],

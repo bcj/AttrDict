@@ -76,8 +76,8 @@ class AttrDict(MutableMapping):
 
     def _set(self, key, value):
         """
-        Respoinsible for actually adding/changing a key-value pair. This
-        needs to be separated otu so that setattr and setitem don't
+        Responsible for actually adding/changing a key-value pair. This
+        needs to be separated out so that setattr and setitem don't
         clash.
         """
         self._mapping[key] = value

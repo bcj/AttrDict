@@ -1,6 +1,9 @@
 ========
 AttrDict
 ========
+.. image:: https://coveralls.io/repos/bcj/AttrDict/badge.png?branch=master
+  :target: https://coveralls.io/r/bcj/AttrDict?branch=master
+
 
 AttrDict is a 2.6, 2.7, 3-compatible dictionary that allows its elements
 to be accessed both as keys and as attributes::

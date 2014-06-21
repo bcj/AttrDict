@@ -1,6 +1,7 @@
 ========
 AttrDict
 ========
+.. image:: https://travis-ci.org/bcj/AttrDict.svg?branch=master
 .. image:: https://coveralls.io/repos/bcj/AttrDict/badge.png?branch=master
   :target: https://coveralls.io/r/bcj/AttrDict?branch=master
 

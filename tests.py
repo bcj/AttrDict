@@ -651,5 +651,55 @@ class TestAttrDict(unittest.TestCase):
         self.assertNotEqual(adict, bdict)
         self.assertEqual(bdict, cdict)
 
+    def test_default_dict(self):
+        """
+        test attrdict's defaultdict support.
+        """
+        from attrdict import AttrDict
+
+        with self.assertRaises(AttributeError):
+            AttrDict.foo
+
+        adict = AttrDict(default_factory=lambda: ('foo', 'bar', 'baz'))
+
+        self.assertEqual(adict['foo'], ('foo', 'bar', 'baz'))
+        self.assertEqual(adict('bar'), ('foo', 'bar', 'baz'))
+        self.assertEqual(adict.baz, ('foo', 'bar', 'baz'))
+        self.assertIsNone(adict.get('lorem'))
+        self.assertEqual(adict.get('ipsum', 'alpha'), 'alpha')
+
+        # make sure this doesn't break access
+        adict.bravo = 'charlie'
+
+        self.assertEqual(adict['bravo'], 'charlie')
+        self.assertEqual(adict('bravo'), 'charlie')
+        self.assertEqual(adict.bravo, 'charlie')
+        self.assertEqual(adict.get('bravo'), 'charlie')
+        self.assertEqual(adict.get('bravo', 'alpha'), 'charlie')
+
+    def test_default_dict_pass_key(self):
+        """
+        test attrdict's defaultdict support.
+        """
+        from attrdict import AttrDict
+
+        adict = AttrDict(default_factory=lambda foo: (foo, 'bar', 'baz'),
+                         pass_key=True)
+
+        self.assertEqual(adict['foo'], ('foo', 'bar', 'baz'))
+        self.assertEqual(adict('bar'), ('bar', 'bar', 'baz'))
+        self.assertEqual(adict.baz, ('baz', 'bar', 'baz'))
+        self.assertIsNone(adict.get('lorem'))
+        self.assertEqual(adict.get('ipsum', 'alpha'), 'alpha')
+
+        # make sure this doesn't break access
+        adict.bravo = 'charlie'
+
+        self.assertEqual(adict['bravo'], 'charlie')
+        self.assertEqual(adict('bravo'), 'charlie')
+        self.assertEqual(adict.bravo, 'charlie')
+        self.assertEqual(adict.get('bravo'), 'charlie')
+        self.assertEqual(adict.get('bravo', 'alpha'), 'charlie')
+
 if __name__ == '__main__':
     unittest.main()

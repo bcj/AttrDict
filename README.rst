@@ -163,6 +163,22 @@ When merging an AttrDict with another mapping, this behavior will be disabled
 if at least one of the merged items is an AttrDict that has set ``recursive``
 to ``False``.
 
+DefaultDict
+===========
+
+AttrDict supports defaultdict-style automatic creation of attributes::
+
+    > adict = AttrDict(default_factory=list)
+    > adict.foo
+    []
+
+Furthermore, if ``pass_key=True``, then the key will be passed to the function
+used when creating the value::
+
+    > adict = AttrDict(default_factory=lambda value: value.upper(), pass_key=True)
+    > adict.foo
+    'FOO'
+
 Cookbook
 ========
 A common usage for AttrDict is to use it in combination with settings files to create hierarchical settings::

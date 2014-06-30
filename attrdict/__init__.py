@@ -21,16 +21,13 @@ else:
     STRING = str
 
 
-_NOT_PASSED = object()
-
-
 class AttrDict(MutableMapping):
     """
     A mapping object that allows access to its values both as keys, and
     as attributes (as long as the attribute name is valid).
     """
     def __init__(self, mapping=None, recursive=True,
-                 default_factory=_NOT_PASSED, pass_key=False):
+                 default_factory=None, pass_key=False):
         """
         mapping: (optional, None) The mapping object to use for the
             instance. Note that the mapping object itself is used, not a
@@ -49,7 +46,7 @@ class AttrDict(MutableMapping):
         # Has to happen before _mapping
         self._recursive = recursive
 
-        if default_factory is _NOT_PASSED:
+        if default_factory is None:
             self._default_factory = None
             self._pass_key = False
         else:

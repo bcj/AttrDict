@@ -21,22 +21,41 @@ else:
     STRING = str
 
 
+_NOT_PASSED = object()
+
+
 class AttrDict(MutableMapping):
     """
     A mapping object that allows access to its values both as keys, and
     as attributes (as long as the attribute name is valid).
     """
-    def __init__(self, mapping=None, recursive=True):
+    def __init__(self, mapping=None, recursive=True,
+                 default_factory=_NOT_PASSED, pass_key=False):
         """
         mapping: (optional, None) The mapping object to use for the
             instance. Note that the mapping object itself is used, not a
             copy. This means that you cannot clone an AttrDict using:
             adict = AttrDict(adict)
+        recursive: (optional, True) Recursively convert mappings into
+            AttrDicts.
+        default_factory: (optional, Not Passed) If passed make AttrDict
+            behave like a default dict.
+        pass_key: (optional, False) If True, and default_factory is
+            given, then default_factory will be passed the key.
         """
         if mapping is None:
             mapping = {}
 
-        self._recursive = recursive  # Has to happen before _mapping
+        # Has to happen before _mapping
+        self._recursive = recursive
+
+        if default_factory is _NOT_PASSED:
+            self._default_factory = None
+            self._pass_key = False
+        else:
+            self._default_factory = default_factory
+            self._pass_key = pass_key
+
         self._mapping = mapping
 
         for key, value in mapping.iteritems() if PY2 else mapping.items():
@@ -96,6 +115,22 @@ class AttrDict(MutableMapping):
         if self._valid_name(key):
             super(AttrDict, self).__delattr__(key)
 
+    def __getattr__(self, key):
+        """
+        value = adict.key
+
+        Access a value associated with a key in the instance.
+        """
+        try:
+            value = self.__getattribute__(key)
+        except:
+            if self._default_factory is not None:
+                value = self.__missing__(key)
+            else:
+                raise
+
+        return value
+
     def __call__(self, key):
         """
         Access a value in the mapping as an attribute. This differs from
@@ -106,9 +141,12 @@ class AttrDict(MutableMapping):
         key: The key associated with the value being accessed.
         """
         if key not in self._mapping:
-            raise AttributeError(
-                "'{0}' instance has no attribute '{1}'".format(
-                    self.__class__.__name__, key))
+            if self._default_factory is not None:
+                self.__missing__(key)
+            else:
+                raise AttributeError(
+                    "'{0}' instance has no attribute '{1}'".format(
+                        self.__class__.__name__, key))
 
         return self._build(self._mapping[key], recursive=self._recursive)
 
@@ -151,6 +189,9 @@ class AttrDict(MutableMapping):
 
         Access a value associated with a key in the instance.
         """
+        if key not in self._mapping and self._default_factory is not None:
+            self[key] = self.__missing__(key)
+
         return self._mapping[key]
 
     def __delitem__(self, key):
@@ -218,6 +259,17 @@ class AttrDict(MutableMapping):
         Create a string representation of the AttrDict.
         """
         return u"a{0}".format(repr(self._mapping))
+
+    def __missing__(self, key):
+        """
+        Add a missing element.
+        """
+        if self._pass_key:
+            self._mapping[key] = value = self._default_factory(key)
+        else:
+            self._mapping[key] = value = self._default_factory()
+
+        return value
 
     @classmethod
     def _build(cls, obj, recursive=True):

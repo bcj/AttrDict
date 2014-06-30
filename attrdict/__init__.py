@@ -4,6 +4,7 @@ keys, and as attributes (whenever the key can be used as an attribute
 name).
 """
 from collections import Mapping, MutableMapping, Sequence
+from copy import deepcopy
 import re
 from sys import version_info
 
@@ -43,17 +44,16 @@ class AttrDict(MutableMapping):
         if mapping is None:
             mapping = {}
 
-        # Has to happen before _mapping
-        self._recursive = recursive
-
         if default_factory is None:
-            self._default_factory = None
-            self._pass_key = False
+            self.__setattr__('_default_factory', None, force=True)
+            self.__setattr__('_pass_key', False, force=True)
         else:
-            self._default_factory = default_factory
-            self._pass_key = pass_key
+            self.__setattr__('_default_factory', default_factory, force=True)
+            self.__setattr__('_pass_key', pass_key, force=True)
 
-        self._mapping = mapping
+        self.__setattr__('_recursive', recursive, force=True)
+
+        self.__setattr__('_mapping', mapping, force=True)
 
         for key, value in mapping.iteritems() if PY2 else mapping.items():
             if self._valid_name(key):
@@ -118,15 +118,10 @@ class AttrDict(MutableMapping):
 
         Access a value associated with a key in the instance.
         """
-        try:
-            value = self.__getattribute__(key)
-        except:
-            if self._default_factory is not None:
-                value = self.__missing__(key)
-            else:
-                raise
+        if self._default_factory is None:
+            raise AttributeError(key)
 
-        return value
+        return self.__missing__(key)
 
     def __call__(self, key):
         """
@@ -147,13 +142,13 @@ class AttrDict(MutableMapping):
 
         return self._build(self._mapping[key], recursive=self._recursive)
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key, value, force=False):
         """
         adict.key = value
 
         Add a key-value pair as an attribute
         """
-        if not hasattr(self, '_mapping'):
+        if force:
             super(AttrDict, self).__setattr__(key, value)
         else:
             if not self._valid_name(key):
@@ -267,6 +262,22 @@ class AttrDict(MutableMapping):
             self._mapping[key] = value = self._default_factory()
 
         return value
+
+    def __copy__(self):
+        """
+        Copy an attrdict.
+        """
+        return AttrDict(self._mapping, recursive=self._recursive,
+                        default_factory=self._default_factory,
+                        pass_key=self._pass_key)
+
+    def __deepcopy__(self, memo):
+        """
+        Deep copy an attrdict.
+        """
+        return AttrDict(deepcopy(self._mapping), recursive=self._recursive,
+                        default_factory=self._default_factory,
+                        pass_key=self._pass_key)
 
     @classmethod
     def _build(cls, obj, recursive=True):

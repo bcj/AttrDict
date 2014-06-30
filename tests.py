@@ -634,6 +634,23 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(
             repr(AttrDict({'foo': AttrDict({1: 2})})), "a{'foo': a{1: 2}}")
 
+    def test_copy(self):
+        """
+        test that attrdict supports copy.
+        """
+        from copy import copy
+
+        from attrdict import AttrDict
+
+        adict = AttrDict({'foo': {'bar': 'baz'}})
+        bdict = copy(adict)
+        cdict = bdict
+
+        bdict.foo.lorem = 'ipsum'
+
+        self.assertEqual(adict, bdict)
+        self.assertEqual(bdict, cdict)
+
     def test_deepcopy(self):
         """
         test that attrdict supports deepcopy.

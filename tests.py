@@ -682,7 +682,7 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict['foo'], ('foo', 'bar', 'baz'))
         self.assertEqual(adict('bar'), ('foo', 'bar', 'baz'))
         self.assertEqual(adict.baz, ('foo', 'bar', 'baz'))
-        self.assertIsNone(adict.get('lorem'))
+        self.assertEqual(adict.get('lorem'), None)
         self.assertEqual(adict.get('ipsum', 'alpha'), 'alpha')
 
         # make sure this doesn't break access
@@ -706,7 +706,7 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict['foo'], ('foo', 'bar', 'baz'))
         self.assertEqual(adict('bar'), ('bar', 'bar', 'baz'))
         self.assertEqual(adict.baz, ('baz', 'bar', 'baz'))
-        self.assertIsNone(adict.get('lorem'))
+        self.assertEqual(adict.get('lorem'), None)
         self.assertEqual(adict.get('ipsum', 'alpha'), 'alpha')
 
         # make sure this doesn't break access

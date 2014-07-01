@@ -674,8 +674,8 @@ class TestAttrDict(unittest.TestCase):
         """
         from attrdict import AttrDict
 
-        with self.assertRaises(AttributeError):
-            AttrDict.foo
+        self.assertRaises(KeyError, lambda: AttrDict()['foo'])
+        self.assertRaises(AttributeError, lambda: AttrDict().foo)
 
         adict = AttrDict(default_factory=lambda: ('foo', 'bar', 'baz'))
 

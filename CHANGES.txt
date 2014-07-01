@@ -4,3 +4,4 @@ v0.2.0, 2014/01/03 -- Handle lists as attributes.
 v0.2.1, 2014/03/19 -- Bug Fixes: Sequences no longer converted to lists, dict-style access fixed
 v0.3.0, 2014/05/28 -- 100 coverage, tests moved out of install
 v0.3.1, 2014/06/03 -- documentation typo fix (by @donsignore)
+v0.4.0, 2014/07/01 -- Happy Canada Day, have some defaultdict support

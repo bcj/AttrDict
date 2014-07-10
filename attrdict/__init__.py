@@ -224,7 +224,7 @@ class AttrDict(MutableMapping):
 
         Add a mapping to this AttrDict object.
 
-        NOTE: AttrDict is not idempotent. a + b != b + a.
+        NOTE: AttrDict is not commutative. a + b != b + a.
         """
         if not isinstance(other, Mapping):
             return NotImplemented
@@ -239,7 +239,7 @@ class AttrDict(MutableMapping):
 
         Add this AttrDict to a mapping object.
 
-        NOTE: AttrDict is not idempotent. a + b != b + a.
+        NOTE: AttrDict is not commutative. a + b != b + a.
         """
         if not isinstance(other, Mapping):
             return NotImplemented
@@ -349,7 +349,7 @@ def merge(left, right, recursive=True):
     recursive: (optional, True) Whether Sequences should have their
         elements turned into attrdicts.
 
-    NOTE: This is not idempotent. merge(a, b) != merge(b, a).
+    NOTE: This is not commutative. merge(a, b) != merge(b, a).
     """
     merged = AttrDict(recursive=recursive)
 

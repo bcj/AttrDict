@@ -124,7 +124,7 @@ recursively merged::
     > AttrDict(a) + b
     {'foo': 'bar', 'lorem': 'ipsum', 'alpha': {'beta': 'a', 'bravo': 'b', 'a': 'b'}}
 
-NOTE: AttrDict's add is not associative, ``a + b != b + a``::
+NOTE: AttrDict's add is not commutative, ``a + b != b + a``::
 
     > a = {'foo': 'bar', 'alpha': {'beta': 'b', 'a': 0}}
     > b = {'lorem': 'ipsum', 'alpha': {'bravo': 'b', 'a': 1}}

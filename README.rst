@@ -184,6 +184,7 @@ load
 A common usage for AttrDict is to use it in combination with settings files to
 create hierarchical settings. attrdict comes with a load function to make this
 easier::
+
     from attrdict import load
 
     settings = load('settings.json')
@@ -193,6 +194,7 @@ be overrided by passing ``load_function=YOUR_LOAD_FUNCTION``.
 
 ``load`` supports loading from multiple files at once. This allows for
 overriding of default settings, e.g.::
+
     from attrdict import load
     from yaml import safe_load
 

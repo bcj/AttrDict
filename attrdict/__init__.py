@@ -5,6 +5,7 @@ name).
 """
 from collections import Mapping, MutableMapping, Sequence
 from copy import deepcopy
+import json
 import re
 from sys import version_info
 
@@ -12,14 +13,8 @@ from sys import version_info
 __all__ = ['AttrDict', 'merge']
 
 
-if version_info < (3,):  # Python 2
-    PY2 = True
-
-    STRING = basestring
-else:
-    PY2 = False
-
-    STRING = str
+# Python 2
+PY2, STRING = (True, basestring) if version_info < (3,) else (False, str)
 
 
 class AttrDict(MutableMapping):
@@ -372,3 +367,26 @@ def merge(left, right, recursive=True):
             merged[key] = right[key]
 
     return merged
+
+
+# def load(*filenames, load_function=json.load)  # once Python3-only
+def load(*filenames, **kwargs):
+    """
+    Returns a settings dict built from a list of settings files.
+
+    filenames: The names of any number of settings files.
+    load_function: (optional, json.load) The function used to load the
+    settings into a Mapping object.
+    """
+    load_function = kwargs.pop('load_function', json.load)
+
+    if kwargs:
+        raise TypeError("unknown options: {0}".format(kwargs.keys()))
+
+    settings = AttrDict()
+
+    for filename in filenames:
+        with open(filename, 'r') as fileobj:
+            settings += load_function(fileobj)
+
+    return settings

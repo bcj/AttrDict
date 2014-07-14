@@ -1,7 +1,11 @@
 """
 A collection of unit tests for the AttrDict class.
 """
+from __future__ import print_function
+
+import os
 from sys import version_info
+from tempfile import mkstemp
 import unittest
 
 
@@ -12,6 +16,13 @@ class TestAttrDict(unittest.TestCase):
     """
     A collection of unit tests for the AttrDict class.
     """
+    def setUp(self):
+        self.tempfiles = []
+
+    def tearDown(self):
+        for tempfile in self.tempfiles:
+            os.remove(tempfile)
+
     def test_init(self):
         """
         Make sure that keys are accessable both as keys and attributes
@@ -266,7 +277,7 @@ class TestAttrDict(unittest.TestCase):
             raise AssertionError("Exception not thrown")
 
         # make sure things weren't deleted
-        adict._set
+        self.assertNotEqual(adict._set, 'shadows')
         self.assertEqual(adict.get('get'), 'shadows')
         self.assertEqual(adict, {'_set': 'shadows', 'get': 'shadows'})
 
@@ -349,31 +360,16 @@ class TestAttrDict(unittest.TestCase):
 
         adict = AttrDict({'foo': {'bar': {'baz': 'lorem'}}})
 
-        # with self.assertRaises(AttributeError)
-        try:
-            adict['foo'].bar
-        except AttributeError:
-            pass  # expected
-        else:
-            raise AssertionError("Exception not thrown")
+        self.assertEqual(adict.foo.bar, {'baz': 'lorem'})  # works
+        self.assertRaises(AttributeError, lambda: adict['foo'].bar)
 
-        # with self.assertRaises(AttributeError)
-        try:
-            adict['foo']['bar'].baz
-        except AttributeError:
-            pass  # expected
-        else:
-            raise AssertionError("Exception not thrown")
+        self.assertEqual(adict.foo.bar.baz, 'lorem')  # works
+        self.assertRaises(AttributeError, lambda: adict['foo']['bar'].baz)
 
         adict = AttrDict({'foo': [{'bar': 'baz'}]})
 
-        # with self.assertRaises(AttributeError)
-        try:
-            adict['foo'][0].bar
-        except AttributeError:
-            pass  # expected
-        else:
-            raise AssertionError("Exception not thrown")
+        self.assertEqual(adict.foo[0].bar, 'baz')  # works
+        self.assertRaises(AttributeError, lambda: adict['foo'][0].bar)
 
     def test_contains(self):
         """
@@ -717,6 +713,83 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict.bravo, 'charlie')
         self.assertEqual(adict.get('bravo'), 'charlie')
         self.assertEqual(adict.get('bravo', 'alpha'), 'charlie')
+
+    def test_load_bad_kwarg(self):
+        """
+        Test that load TypeErrors on kwargs other than load_function
+        """
+        from attrdict import load
+
+        self.assertRaises(TypeError, load, foo='bar')
+
+    def test_load_empty(self):
+        """
+        Test that load TypeErrors on kwargs other than load_function
+        """
+        from attrdict import load, AttrDict
+
+        adict = load()
+
+        self.assertTrue(isinstance(adict, AttrDict))
+        self.assertFalse(adict)
+
+    def test_load_one(self):
+        """
+        test loading a single file
+        """
+        from attrdict import load
+
+        self.tempfiles.append(mkstemp()[1])
+
+        with open(self.tempfiles[0], 'w') as fileobj:
+            fileobj.write('{"foo": "bar", "baz": 1}')
+
+        adict = load(self.tempfiles[0])
+
+        self.assertEqual(adict, {'foo': 'bar', 'baz': 1})
+
+    def test_load_many(self):
+        """
+        test loading multiple files at once.
+        """
+        from attrdict import load
+
+        self.tempfiles.append(mkstemp()[1])
+
+        with open(self.tempfiles[0], 'w') as fileobj:
+            fileobj.write('{"foo": "bar", "baz": {"lorem": "ipsum"}}')
+
+        self.tempfiles.append(mkstemp()[1])
+
+        with open(self.tempfiles[1], 'w') as fileobj:
+            fileobj.write('{"alpha": "bravo", "baz": {"charlie": "delta"}}')
+
+        self.tempfiles.append(mkstemp()[1])
+
+        with open(self.tempfiles[2], 'w') as fileobj:
+            fileobj.write('{"alpha": "a", "baz": {"charlie": "delta"}}')
+
+        adict = load(*self.tempfiles)
+
+        self.assertEqual(adict, {
+            'foo': 'bar',
+            'alpha': 'a',
+            'baz': {'lorem': 'ipsum', 'charlie': 'delta'}})
+
+    def test_load_load_function(self):
+        """
+        test that load works with a custom load_function provided.
+        """
+        from attrdict import load
+
+        self.tempfiles.append(mkstemp()[1])
+
+        with open(self.tempfiles[0], 'w') as fileobj:
+            fileobj.write('{"foo": "bar", "baz": 1}')
+
+        adict = load(self.tempfiles[0], load_function=lambda _: {'banana': 1})
+
+        self.assertEqual(adict, {'banana': 1})
 
 if __name__ == '__main__':
     unittest.main()

@@ -179,28 +179,22 @@ used when creating the value::
     > adict.foo
     'FOO'
 
-Cookbook
-========
-A common usage for AttrDict is to use it in combination with settings files to create hierarchical settings::
+load
+====
+A common usage for AttrDict is to use it in combination with settings files to
+create hierarchical settings. attrdict comes with a load function to make this
+easier::
+    from attrdict import load
 
-    from attrdict import AttrDict
-    import yaml
+    settings = load('settings.json')
 
-    def load(*filenames):
-        """
-        Returns a settings dict built from a list of settings files.
+By default, ``load`` uses ``json.load`` to load the settings file, but this can
+be overrided by passing ``load_function=YOUR_LOAD_FUNCTION``.
 
-        filenames: The names of any number of settings files.
-        """
-        settings = AttrDict()
-
-        for filename in filenames:
-            with open(filename, 'r') as fileobj:
-                settings += yaml.safe_load(fileobj)
-
-        return settings
-
-By accepting multiple files, settings can allow for default settings and provide overrides, e.g.::
+``load`` supports loading from multiple files at once. This allows for
+overriding of default settings, e.g.::
+    from attrdict import load
+    from yaml import safe_load
 
     # config.yaml =
     # emergency:
@@ -210,7 +204,7 @@ By accepting multiple files, settings can allow for default settings and provide
     # user.yaml =
     # emergency:
     #   email: user@example.com
-    settings = load('config.yaml', 'user.yaml')
+    settings = load('config.yaml', 'user.yaml', load_function=safe_load)
 
     assert settings.email == 'user@example.com'
     assert settings.message == 'Something went wrong'

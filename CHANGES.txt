@@ -5,4 +5,5 @@ v0.2.1, 2014/03/19 -- Bug Fixes: Sequences no longer converted to lists, dict-st
 v0.3.0, 2014/05/28 -- 100 coverage, tests moved out of install
 v0.3.1, 2014/06/03 -- documentation typo fix (by @donsignore)
 v0.4.0, 2014/07/01 -- Happy Canada Day, have some defaultdict support
-v0.5.0, 2014/08/14 —- documentation fix (by @eukaryote), load function
+v0.5.0, 2014/07/14 —- documentation fix (by @eukaryote), load function
+v0.5.1, 2014/07/14 -- tox for local testing, README fix, 0.5.0 no longer from the future

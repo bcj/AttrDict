@@ -334,6 +334,12 @@ class AttrDict(MutableMapping):
             """
             return self._mapping.itervalues()
 
+        def has_key(self, key):
+            """
+            True if the mapping has key, False otherwise
+            """
+            return key in self
+
 
 def merge(left, right, recursive=True):
     """

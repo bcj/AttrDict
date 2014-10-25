@@ -384,6 +384,26 @@ class TestAttrDict(unittest.TestCase):
         self.assertTrue('get' in adict)
         self.assertFalse('items' in adict)
 
+    def test_has_key(self):
+        """
+        Test has_key behavior in regard to this python
+        """
+        import inspect
+        from attrdict import AttrDict
+
+        adict = AttrDict({'foo': 'bar'})
+        masked = AttrDict({'has_key': 'foobar'})
+
+        if PY2:
+            self.assertTrue(inspect.ismethod(adict.has_key))
+            self.assertTrue(inspect.ismethod(masked.has_key))
+            self.assertFalse(adict.has_key('has_key'))
+            self.assertTrue(masked.has_key('has_key'))
+        else:  # Python3 dropped this method
+            self.assertFalse(inspect.ismethod(masked.has_key))
+            self.assertRaises(AttributeError, getattr, adict, 'has_key')
+            self.assertEqual(masked.has_key, 'foobar')
+
     def test_len(self):
         """
         Test that len works properly.

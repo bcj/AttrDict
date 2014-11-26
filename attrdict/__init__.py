@@ -274,6 +274,14 @@ class AttrDict(MutableMapping):
                         default_factory=self._default_factory,
                         pass_key=self._pass_key)
 
+    def __getstate__(self):
+        return (self._mapping, self._recursive, self._default_factory,
+                self._pass_key)
+
+    def __setstate__(self, state):
+        mapping, recursive, default_factory, pass_key = state
+        self.__init__(mapping, recursive, default_factory, pass_key)
+
     @classmethod
     def _build(cls, obj, recursive=True):
         """

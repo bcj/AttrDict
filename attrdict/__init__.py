@@ -4,7 +4,6 @@ keys, and as attributes (whenever the key can be used as an attribute
 name).
 """
 from collections import Mapping, MutableMapping, Sequence
-from copy import deepcopy
 import json
 import re
 from sys import version_info
@@ -257,22 +256,6 @@ class AttrDict(MutableMapping):
             self._mapping[key] = value = self._default_factory()
 
         return value
-
-    def __copy__(self):
-        """
-        Copy an attrdict.
-        """
-        return AttrDict(self._mapping, recursive=self._recursive,
-                        default_factory=self._default_factory,
-                        pass_key=self._pass_key)
-
-    def __deepcopy__(self, memo):
-        """
-        Deep copy an attrdict.
-        """
-        return AttrDict(deepcopy(self._mapping), recursive=self._recursive,
-                        default_factory=self._default_factory,
-                        pass_key=self._pass_key)
 
     def __getstate__(self):
         return (self._mapping, self._recursive, self._default_factory,

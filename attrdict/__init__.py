@@ -258,10 +258,16 @@ class AttrDict(MutableMapping):
         return value
 
     def __getstate__(self):
+        """
+        Handle proper serialization of the object. (used by pickle).
+        """
         return (self._mapping, self._recursive, self._default_factory,
                 self._pass_key)
 
     def __setstate__(self, state):
+        """
+        Handle proper deserialization of the object. (used by pickle).
+        """
         mapping, recursive, default_factory, pass_key = state
         self.__init__(mapping, recursive, default_factory, pass_key)
 

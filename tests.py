@@ -827,6 +827,10 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict, {'banana': 1})
 
     def _check_pickle_roundtrip(self, source, **attrdict_kwargs):
+        """
+        Serialize then Deserialize an attrdict, ensuring that the result
+        and initial object are equivalent.
+        """
         from attrdict import AttrDict
 
         source = AttrDict(source, **attrdict_kwargs)
@@ -838,7 +842,11 @@ class TestAttrDict(unittest.TestCase):
         return loaded
 
     def test_pickle_unpickle_simple(self):
+        """
+        Test that AttrDict can handle pickling.
+        """
         from attrdict import AttrDict
+
         # simple
         self._check_pickle_roundtrip({'a': 1})
         # nested
@@ -855,6 +863,9 @@ class TestAttrDict(unittest.TestCase):
 
 
 def return1():
+    """
+    function for testing pickling with default_factory.
+    """
     return 1
 
 

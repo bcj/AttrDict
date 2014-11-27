@@ -8,3 +8,4 @@ v0.4.0, 2014/07/01 -- Happy Canada Day, have some defaultdict support
 v0.5.0, 2014/07/14 —- documentation fix (by @eukaryote), load function
 v0.5.1, 2014/07/14 -- tox for local testing, README fix, 0.5.0 no longer from the future
 v1.0.0, 2014/08/18 -- Development Status :: 5 - Production/Stable
+v1.1.0, 2014/11/26 -- Happy U.S. Thanksgiving, now you can pickle AttrDict! (by @jtratner)

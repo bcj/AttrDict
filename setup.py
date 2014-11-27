@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name="attrdict",
-    version="1.0.0",
+    version="1.1.0",
     author="Brendan Curran-Johnson",
     author_email="brendan@bcjbcj.ca",
     packages=["attrdict"],

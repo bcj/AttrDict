@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 from sys import version_info
 from tempfile import mkstemp
+import pickle
 import unittest
 
 
@@ -810,6 +811,38 @@ class TestAttrDict(unittest.TestCase):
         adict = load(self.tempfiles[0], load_function=lambda _: {'banana': 1})
 
         self.assertEqual(adict, {'banana': 1})
+
+    def _check_pickle_roundtrip(self, source, **attrdict_kwargs):
+        from attrdict import AttrDict
+
+        source = AttrDict(source, **attrdict_kwargs)
+        data = pickle.dumps(source)
+        loaded = pickle.loads(data)
+        self.assertEqual(source, loaded)
+        self.assert_(isinstance(loaded, AttrDict),
+                     '%s not instance of %s' % (type(loaded), AttrDict))
+        return loaded
+
+    def test_pickle_unpickle_simple(self):
+        from attrdict import AttrDict
+        # simple
+        self._check_pickle_roundtrip({'a': 1})
+        # nested
+        self._check_pickle_roundtrip({'a': 1, 'd': {'c': 1}})
+        # default factory
+        loaded = self._check_pickle_roundtrip({'a': 5},
+                                              default_factory=return1)
+        self.assertEqual(loaded.nonexistent, 1)
+        # recursive
+        loaded = self._check_pickle_roundtrip({'a': [{'c': 5}]},
+                                              recursive=True)
+        self.assert_(isinstance(loaded.a[0], AttrDict),
+                     '%s not instance of %s' % (type(loaded.a[0]), AttrDict))
+
+
+def return1():
+    return 1
+
 
 if __name__ == '__main__':
     unittest.main()

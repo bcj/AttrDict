@@ -735,6 +735,20 @@ class TestAttrDict(unittest.TestCase):
         self.assertEqual(adict.get('bravo'), 'charlie')
         self.assertEqual(adict.get('bravo', 'alpha'), 'charlie')
 
+        # make sure missing doesn't happen on hidden attributes
+        adict = AttrDict(default_factory=lambda: 'default')
+
+        self.assertEqual(adict.works, 'default')
+
+        self.assertRaises(AttributeError, lambda: adict._hidden)
+        self.assertEqual(adict.get('_hidden'), None)
+
+        self.assertRaises(AttributeError, lambda: adict.__magic__)
+        self.assertEqual(adict.get('__magic__'), None)
+
+        # but this should work
+        self.assertEqual(adict('_this_is_fine'), 'default')
+
     def test_load_bad_kwarg(self):
         """
         Test that load TypeErrors on kwargs other than load_function

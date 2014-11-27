@@ -113,7 +113,7 @@ class AttrDict(MutableMapping):
 
         Access a value associated with a key in the instance.
         """
-        if self._default_factory is None:
+        if self._default_factory is None or key.startswith('_'):
             raise AttributeError(key)
 
         return self.__missing__(key)

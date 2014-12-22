@@ -147,17 +147,13 @@ def test_iteration():
 
     mapping = Attr(raw)
 
-    for expected, actual in zip(raw, mapping):
-        assert_equals(expected, actual)
-
-    for expected, actual in zip(raw.keys(), mapping.keys()):
-        assert_equals(expected, actual)
-
-    for expected, actual in zip(raw.values(), mapping.values()):
-        assert_equals(expected, actual)
-
-    for expected, actual in zip(raw.items(), mapping.items()):
-        assert_equals(expected, actual)
+    assert_equals(set(iter(mapping)), set(('foo', 'lorem', 'alpha')))
+    assert_equals(set(mapping.keys()), set(('foo', 'lorem', 'alpha')))
+    assert_equals(set(mapping.values()), set(('bar', 'ipsum', 'bravo')))
+    assert_equals(
+        set(mapping.items()),
+        set((('foo', 'bar'), ('lorem', 'ipsum'), ('alpha', 'bravo')))
+    )
 
     assert_equals(list(Attr().items()), [])
 

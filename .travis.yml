@@ -8,6 +8,6 @@ python:
 install:
   - "pip install -r requirements-tests.txt"
   - "python setup.py install"
-script: nosetests --with-coverage --cover-package attrdict -v
+script: python setup.py nosetests
 after_success:
   - coveralls

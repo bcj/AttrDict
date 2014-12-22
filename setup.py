@@ -1,19 +1,30 @@
+"""
+To install AttrDict:
+
+    python setup.py install
+"""
+from setuptools import setup
+
+
+DESCRIPTION = "A dict with attribute-style access"
+
 try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+    LONG_DESCRIPTION = open('README.rst').read()
+except:
+    LONG_DESCRIPTION = DESCRIPTION
+
 
 setup(
     name="attrdict",
-    version="1.2.0",
+    version="2.0.0",
     author="Brendan Curran-Johnson",
     author_email="brendan@bcjbcj.ca",
-    packages=["attrdict"],
+    packages=("attrdict",),
     url="https://github.com/bcj/AttrDict",
     license="MIT License",
-    description="A dict with attribute-style access",
-    long_description=open('README.rst').read(),
-    classifiers=[
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    classifiers=(
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
@@ -25,5 +36,10 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
-    ],
+    ),
+    tests_require=(
+        'nose>=1.0',
+        'coverage',
+    ),
+    zip_safe=True,
 )

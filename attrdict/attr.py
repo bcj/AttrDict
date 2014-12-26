@@ -303,7 +303,7 @@ class Attr(Mapping):
         Create an Attr version of an object. Any Mapping object will be
         converted to an Attr, and if sequence_type is not None, any
         non-(string/bytes) object will be converted to sequence_type,
-        with any contained Mappings beign converted to Attr.
+        with any contained Mappings being converted to Attr.
         """
         if isinstance(obj, Mapping):
             obj = cls(obj, sequence_type=sequence_type)

@@ -12,7 +12,7 @@ PYTHON_2 = version_info < (3,)
 
 def test_python_2_flag():
     """
-    Test the PYTHON_2 flag.
+    PYTHON_2 flag.
     """
     from attrdict import two_three
 
@@ -21,7 +21,7 @@ def test_python_2_flag():
 
 def test_string_type():
     """
-    Test the StringType type.
+    StringType type.
     """
     from attrdict.two_three import StringType
 
@@ -31,7 +31,7 @@ def test_string_type():
 
 def test_iteritems():
     """
-    Test the two_three.iteritems method.
+    the two_three.iteritems method.
     """
     from attrdict.two_three import iteritems
 

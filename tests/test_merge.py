@@ -6,7 +6,7 @@ from nose.tools import assert_equals
 
 def test_merge():
     """
-    Test the merge function.
+    merge function.
     """
     from attrdict.merge import merge
 

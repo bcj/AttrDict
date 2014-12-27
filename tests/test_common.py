@@ -2,6 +2,7 @@
 """
 Common tests that apply to multiple Attr-derived classes.
 """
+from collections import namedtuple
 import pickle
 from sys import version_info
 
@@ -10,6 +11,11 @@ from nose.tools import (assert_equals, assert_not_equals,
 
 PYTHON_2 = version_info < (3,)
 
+Options = namedtuple(
+    'Options',
+    ('cls', 'constructor', 'mutable', 'method_missing', 'iter_methods')
+)
+
 
 def test_attr():
     """
@@ -17,75 +23,67 @@ def test_attr():
     """
     from attrdict.attr import Attr
 
-    options = {
-        'class': Attr,
-        'mutable': False,
-        'method_missing': False,
-        'iter_methods': False
-    }
-
-    for test, description in common():
-        test.description = description.format(cls='Attr')
-        yield test, Attr, options
+    for test in common(Attr):
+        yield test
 
 
-def test_mutableattr():
+def test_mutable_attr():
     """
     Run MutableAttr against the common tests.
     """
     from attrdict.mutableattr import MutableAttr
 
-    options = {
-        'class': MutableAttr,
-        'mutable': True,
-        'method_missing': False,
-        'iter_methods': False
-    }
-
-    for test, description in common():
-        test.description = description.format(cls='MutableAttr')
-        yield test, MutableAttr, options
+    for test in common(MutableAttr, mutable=True):
+        yield test
 
 
-def common():
+def common(cls, constructor=None, mutable=False, method_missing=False,
+           iter_methods=False):
     """
-    Iterates over tests common to multiple Attr-derived classes.
+    Iterates over tests common to multiple Attr-derived classes
 
-    To run the tests:
-    for test, description in common()
-        test.description = description.format(cls=YOUR_CLASS_NAME)
-        yield test, constructor, options
-
-    constructor should accept 0–1 positional parameters, as well as the
-        named parameter sequence_type.
-
-    options:
-        cls: (optional, constructor) The actual class.
-        mutable: (optional, False) Are constructed instances mutable
-        method_missing: (optional, False) Is there defaultdict support?
-        iter_methodsf: (optional, False) Under Python2, are
-            iter<keys, values, items> methods defined?
+    cls: The class that is being tested.
+    constructor: (optional, None) A special constructor that supports
+        0-1 positional arguments representing a mapping, and the named
+        argument 'sequence_type'. If not given, cls will be called
+    mutable: (optional, False) Whether the object is supposed to be
+        mutable.
+    method_missing: (optional, False) Whether the class supports dynamic
+        creation of methods (e.g., defaultdict).
+    iter_methods: (optional, False) Whether the class implements
+        iter<keys,values,items> under Python 2.
     """
     tests = (
         item_access, iteration, containment, length, equality,
         item_creation, item_deletion, sequence_type, addition,
-        to_kwargs, pickleing
+        to_kwargs, pickleing, pop, popitem, clear, update, setdefault
     )
 
+    require_mutable = lambda options: options.mutable
+
+    requirements = {
+        pop: require_mutable,
+        popitem: require_mutable,
+        clear: require_mutable,
+        update: require_mutable,
+        setdefault: require_mutable,
+    }
+
+    if constructor is None:
+        constructor = cls
+
+    options = Options(cls, constructor, mutable, method_missing, iter_methods)
+
     for test in tests:
-        yield test, test.__doc__
+        if (test not in requirements) or requirements[test](options):
+            test.description = test.__doc__.format(cls=cls.__name__)
+
+            yield test, options
 
 
-def item_access(constructor, options=None):
+def item_access(options):
     "Access items in {cls}."
-
-    if options is None:
-        options = {}
-
-    cls = options.get('class', constructor)
-    method_missing = options.get('method_missing', False)
-
-    mapping = constructor(
+    mapping = options.constructor(
         {
             'foo': 'bar',
             '_lorem': 'ipsum',
@@ -161,8 +159,8 @@ def item_access(constructor, options=None):
     assert_true(isinstance(mapping.get('tuple'), tuple))
 
     assert_true(isinstance(mapping['tuple'][0], dict))
-    assert_true(isinstance(mapping.tuple[0], cls))
-    assert_true(isinstance(mapping('tuple')[0], cls))
+    assert_true(isinstance(mapping.tuple[0], options.cls))
+    assert_true(isinstance(mapping('tuple')[0], options.cls))
     assert_true(isinstance(mapping.get('tuple')[0], dict))
 
     assert_true(isinstance(mapping['tuple'][1], str))
@@ -187,17 +185,17 @@ def item_access(constructor, options=None):
     assert_true(isinstance(mapping.get('list'), list))
 
     assert_true(isinstance(mapping['list'][0], dict))
-    assert_true(isinstance(mapping.list[0], cls))
-    assert_true(isinstance(mapping('list')[0], cls))
+    assert_true(isinstance(mapping.list[0], options.cls))
+    assert_true(isinstance(mapping('list')[0], options.cls))
     assert_true(isinstance(mapping.get('list')[0], dict))
 
     assert_true(isinstance(mapping['list'][1], dict))
-    assert_true(isinstance(mapping.list[1], cls))
-    assert_true(isinstance(mapping('list')[1], cls))
+    assert_true(isinstance(mapping.list[1], options.cls))
+    assert_true(isinstance(mapping('list')[1], options.cls))
     assert_true(isinstance(mapping.get('list')[1], dict))
 
     # Nonexistent key
-    if not method_missing:
+    if not options.method_missing:
         assert_raises(KeyError, lambda: mapping['fake'])
         assert_raises(AttributeError, lambda: mapping.fake)
         assert_raises(AttributeError, lambda: mapping('fake'))
@@ -205,16 +203,11 @@ def item_access(constructor, options=None):
         assert_equals(mapping.get('fake', 'bake'), 'bake')
 
 
-def iteration(constructor, options=None):
+def iteration(options):
     "Iterate over keys/values/items in {cls}"
-    if options is None:
-        options = {}
-
-    iter_methods = options.get('iter_methods', False)
-
     raw = {'foo': 'bar', 'lorem': 'ipsum', 'alpha': 'bravo'}
 
-    mapping = constructor(raw)
+    mapping = options.constructor(raw)
 
     expected_keys = frozenset(('foo', 'lorem', 'alpha'))
     expected_values = frozenset(('bar', 'ipsum', 'bravo'))
@@ -236,7 +229,7 @@ def iteration(constructor, options=None):
         assert_equals(frozenset(actual_values), expected_values)
         assert_equals(frozenset(actual_items), expected_items)
 
-        if iter_methods:
+        if options.iter_methods:
             actual_keys = mapping.iterkeys()
             actual_values = mapping.itervalues()
             actual_items = mapping.iteritems()
@@ -254,13 +247,16 @@ def iteration(constructor, options=None):
         assert_equals(frozenset(actual_items), expected_items)
 
     # make sure empty iteration works
-    assert_equals(tuple(constructor().items()), ())
+    assert_equals(tuple(options.constructor().items()), ())
 
 
-def containment(constructor, _=None):
+def containment(options):
     "Check whether {cls} contains keys"
-    mapping = constructor({'foo': 'bar', frozenset((1, 2, 3)): 'abc', 1: 2})
-    empty = constructor()
+
+    mapping = options.constructor(
+        {'foo': 'bar', frozenset((1, 2, 3)): 'abc', 1: 2}
+    )
+    empty = options.constructor()
 
     assert_true('foo' in mapping)
     assert_false('foo' in empty)
@@ -275,19 +271,21 @@ def containment(constructor, _=None):
     assert_false('banana' in empty)
 
 
-def length(constructor, _=None):
+def length(options):
     "Get the length of an {cls} instance"
 
-    assert_equals(len(constructor()), 0)
-    assert_equals(len(constructor({'foo': 'bar'})), 1)
-    assert_equals(len(constructor({'foo': 'bar', 'lorem': 'ipsum'})), 2)
+    assert_equals(len(options.constructor()), 0)
+    assert_equals(len(options.constructor({'foo': 'bar'})), 1)
+    assert_equals(len(options.constructor({'foo': 'bar', 'baz': 'qux'})), 2)
 
 
-def equality(constructor, _=None):
+def equality(options):
     "Equality checks for {cls}"
     empty = {}
     mapping_a = {'foo': 'bar'}
     mapping_b = {'lorem': 'ipsum'}
+
+    constructor = options.constructor
 
     assert_true(constructor(empty) == empty)
     assert_false(constructor(empty) != empty)
@@ -334,26 +332,22 @@ def equality(constructor, _=None):
     assert_true(constructor((('foo', 'bar'),)) == {'foo': 'bar'})
 
 
-def item_creation(constructor, options=None):
+def item_creation(options):
     "Add a key-value pair to an {cls}"
-    if options is None:
-        options = {}
 
-    mutable = options.get('mutable', False)
-
-    if not mutable:
+    if not options.mutable:
         def attribute():
             "Attempt to add an attribute"
-            constructor().foo = 'bar'
+            options.constructor().foo = 'bar'
 
         def item():
             "Attempt to add an item"
-            constructor()['foo'] = 'bar'
+            options.constructor()['foo'] = 'bar'
 
         assert_raises(TypeError, attribute)
         assert_raises(TypeError, item)
     else:
-        mapping = constructor()
+        mapping = options.constructor()
 
         # key that can be an attribute
         mapping.foo = 'bar'
@@ -431,15 +425,11 @@ def item_creation(constructor, options=None):
         assert_equals(mapping.get('bar'), 'bell')
 
 
-def item_deletion(constructor, options=None):
+def item_deletion(options):
     "Remove a key-value from to an {cls}"
-    if options is None:
-        options = {}
 
-    mutable = options.get('mutable', False)
-
-    if not mutable:
-        mapping = constructor({'foo': 'bar'})
+    if not options.mutable:
+        mapping = options.constructor({'foo': 'bar'})
 
         def attribute(mapping):
             "Attempt to del an attribute"
@@ -456,7 +446,7 @@ def item_deletion(constructor, options=None):
         assert_equals(mapping.foo, 'bar')
         assert_equals(mapping['foo'], 'bar')
     else:
-        mapping = constructor(
+        mapping = options.constructor(
             {'foo': 'bar', 'lorem': 'ipsum', '_hidden': True, 'get': 'value'}
         )
 
@@ -489,11 +479,11 @@ def item_deletion(constructor, options=None):
         assert_true(mapping.get('get', 'banana'), 'banana')
 
 
-def sequence_type(constructor, _=None):
+def sequence_type(options):
     "Does {cls} respect sequence type?"
     data = {'list': [{'foo': 'bar'}], 'tuple': ({'foo': 'bar'},)}
 
-    tuple_mapping = constructor(data)
+    tuple_mapping = options.constructor(data)
 
     assert_true(isinstance(tuple_mapping.list, tuple))
     assert_equals(tuple_mapping.list[0].foo, 'bar')
@@ -501,7 +491,7 @@ def sequence_type(constructor, _=None):
     assert_true(isinstance(tuple_mapping.tuple, tuple))
     assert_equals(tuple_mapping.tuple[0].foo, 'bar')
 
-    list_mapping = constructor(data, sequence_type=list)
+    list_mapping = options.constructor(data, sequence_type=list)
 
     assert_true(isinstance(list_mapping.list, list))
     assert_equals(list_mapping.list[0].foo, 'bar')
@@ -509,7 +499,7 @@ def sequence_type(constructor, _=None):
     assert_true(isinstance(list_mapping.tuple, list))
     assert_equals(list_mapping.tuple[0].foo, 'bar')
 
-    none_mapping = constructor(data, sequence_type=None)
+    none_mapping = options.constructor(data, sequence_type=None)
 
     assert_true(isinstance(none_mapping.list, list))
     assert_raises(AttributeError, lambda: none_mapping.list[0].foo)
@@ -518,7 +508,7 @@ def sequence_type(constructor, _=None):
     assert_raises(AttributeError, lambda: none_mapping.tuple[0].foo)
 
 
-def addition(constructor, _=None):
+def addition(options):
     "Adding {cls} to other mappings."
     left = {
         'foo': 'bar',
@@ -545,6 +535,8 @@ def addition(constructor, _=None):
         'mismatch': False,
         'sub': {'alpha': 'beta', 'a': 'b', 'c': 'd'}
     }
+
+    constructor = options.constructor
 
     assert_raises(TypeError, lambda: constructor() + 1)
 
@@ -590,7 +582,7 @@ def addition(constructor, _=None):
     )
 
 
-def to_kwargs(constructor, _=None):
+def to_kwargs(options):
     "**{cls}"
     def return_results(**kwargs):
         "Return result passed into a function"
@@ -598,59 +590,153 @@ def to_kwargs(constructor, _=None):
 
     expected = {'foo': 1, 'bar': 2}
 
-    assert_equals(return_results(**constructor()), {})
-    assert_equals(return_results(**constructor(expected)), expected)
+    assert_equals(return_results(**options.constructor()), {})
+    assert_equals(return_results(**options.constructor(expected)), expected)
 
 
-def check_pickle_roundtrip(source, constructor, cls=None, **kwargs):
+def check_pickle_roundtrip(source, options, **kwargs):
     """
     serialize then deserialize a mapping, ensuring the result and initial
     objects are equivalent.
     """
-    if cls is None:
-        cls = constructor
-
-    source = constructor(source, **kwargs)
+    source = options.constructor(source, **kwargs)
     data = pickle.dumps(source)
     loaded = pickle.loads(data)
 
-    assert_true(isinstance(loaded, cls))
+    assert_true(isinstance(loaded, options.cls))
 
     assert_equals(source, loaded)
 
     return loaded
 
 
-def pickleing(constructor, options=None):
+def pickleing(options):
     "Pickle {cls}"
-    if options is None:
-        options = {}
 
-    cls = options.get('class', constructor)
-
-    empty = check_pickle_roundtrip(None, constructor, cls)
+    empty = check_pickle_roundtrip(None, options)
     assert_equals(empty, {})
 
-    mapping = check_pickle_roundtrip({'foo': 'bar'}, constructor, cls)
+    mapping = check_pickle_roundtrip({'foo': 'bar'}, options)
     assert_equals(mapping, {'foo': 'bar'})
 
     # make sure sequence_type is preserved
     raw = {'list': [{'a': 'b'}], 'tuple': ({'a': 'b'},)}
 
-    as_tuple = check_pickle_roundtrip(raw, constructor, cls)
+    as_tuple = check_pickle_roundtrip(raw, options)
     assert_true(isinstance(as_tuple['list'], list))
     assert_true(isinstance(as_tuple['tuple'], tuple))
     assert_true(isinstance(as_tuple.list, tuple))
     assert_true(isinstance(as_tuple.tuple, tuple))
 
-    as_list = check_pickle_roundtrip(raw, constructor, cls, sequence_type=list)
+    as_list = check_pickle_roundtrip(raw, options, sequence_type=list)
     assert_true(isinstance(as_list['list'], list))
     assert_true(isinstance(as_list['tuple'], tuple))
     assert_true(isinstance(as_list.list, list))
     assert_true(isinstance(as_list.tuple, list))
 
-    as_raw = check_pickle_roundtrip(raw, constructor, cls, sequence_type=None)
+    as_raw = check_pickle_roundtrip(raw, options, sequence_type=None)
     assert_true(isinstance(as_raw['list'], list))
     assert_true(isinstance(as_raw['tuple'], tuple))
     assert_true(isinstance(as_raw.list, list))
     assert_true(isinstance(as_raw.tuple, tuple))
+
+
+def pop(options):
+    "Popping from {cls}"
+
+    mapping = options.constructor({'foo': 'bar', 'baz': 'qux'})
+
+    assert_raises(KeyError, lambda: mapping.pop('lorem'))
+    assert_equals(mapping.pop('lorem', 'ipsum'), 'ipsum')
+    assert_equals(mapping, {'foo': 'bar', 'baz': 'qux'})
+
+    assert_equals(mapping.pop('baz'), 'qux')
+    assert_false('baz' in mapping)
+    assert_equals(mapping, {'foo': 'bar'})
+
+    assert_equals(mapping.pop('foo', 'qux'), 'bar')
+    assert_false('foo' in mapping)
+    assert_equals(mapping, {})
+
+
+def popitem(options):
+    "Popping items from {cls}"
+    expected = {'foo': 'bar', 'lorem': 'ipsum', 'alpha': 'beta'}
+    actual = {}
+
+    mapping = options.constructor(expected)
+
+    for _ in range(3):
+        key, value = mapping.popitem()
+
+        assert_equals(expected[key], value)
+        actual[key] = value
+
+    assert_equals(expected, actual)
+
+    assert_raises(AttributeError, lambda: mapping.foo)
+    assert_raises(AttributeError, lambda: mapping.lorem)
+    assert_raises(AttributeError, lambda: mapping.alpha)
+    assert_raises(KeyError, mapping.popitem)
+
+
+def clear(options):
+    "clear the {cls}"
+
+    mapping = options.constructor(
+        {'foo': 'bar', 'lorem': 'ipsum', 'alpha': 'beta'}
+    )
+
+    mapping.clear()
+
+    assert_equals(mapping, {})
+
+    assert_raises(AttributeError, lambda: mapping.foo)
+    assert_raises(AttributeError, lambda: mapping.lorem)
+    assert_raises(AttributeError, lambda: mapping.alpha)
+
+
+def update(options):
+    "update a {cls}"
+
+    mapping = options.constructor({'foo': 'bar', 'alpha': 'bravo'})
+
+    mapping.update(alpha='beta', lorem='ipsum')
+    assert_equals(mapping, {'foo': 'bar', 'alpha': 'beta', 'lorem': 'ipsum'})
+
+    mapping.update({'foo': 'baz', 1: 'one'})
+    assert_equals(
+        mapping,
+        {'foo': 'baz', 'alpha': 'beta', 'lorem': 'ipsum', 1: 'one'}
+    )
+
+    assert_equals(mapping.foo, 'baz')
+    assert_equals(mapping.alpha, 'beta')
+    assert_equals(mapping.lorem, 'ipsum')
+    assert_equals(mapping(1), 'one')
+
+
+def setdefault(options):
+    "{cls}.setdefault"
+
+    mapping = options.constructor({'foo': 'bar'})
+
+    assert_equals(mapping.setdefault('foo', 'baz'), 'bar')
+    assert_equals(mapping.foo, 'bar')
+
+    assert_equals(mapping.setdefault('lorem', 'ipsum'), 'ipsum')
+    assert_equals(mapping.lorem, 'ipsum')
+
+    assert_true(mapping.setdefault('return_none') is None)
+    assert_true(mapping.return_none is None)
+
+    assert_equals(mapping.setdefault(1, 'one'), 'one')
+    assert_equals(mapping[1], 'one')
+
+    assert_equals(mapping.setdefault('_hidden', 'yes'), 'yes')
+    assert_raises(AttributeError, lambda: mapping._hidden)
+    assert_equals(mapping['_hidden'], 'yes')
+
+    assert_equals(mapping.setdefault('get', 'value'), 'value')
+    assert_not_equals(mapping.get, 'value')
+    assert_equals(mapping['get'], 'value')

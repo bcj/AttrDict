@@ -10,6 +10,15 @@ class MutableAttr(Attr, MutableMapping):
     """
     A subclass of Attr that implements MutableMapping.
     """
+    # def pop(self, key, default=None):
+    #     value = default
+
+    #     if key in self._mapping:
+    #         value = self._mapping[key]
+    #         del self[key]
+
+    #     return value
+
     def __setattr__(self, key, value, force=False):
         """
         Add an attribute to the instance. The attribute will only be

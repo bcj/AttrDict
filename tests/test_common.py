@@ -539,6 +539,7 @@ def addition(options):
     constructor = options.constructor
 
     assert_raises(TypeError, lambda: constructor() + 1)
+    assert_raises(TypeError, lambda: 1 + constructor())
 
     assert_equals(constructor() + constructor(), {})
     assert_equals(constructor() + {}, {})

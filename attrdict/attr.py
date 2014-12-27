@@ -7,7 +7,7 @@ from collections import Mapping, Sequence
 import re
 
 from attrdict.merge import merge
-from attrdict.two_three import PYTHON_2, StringType, iteritems
+from attrdict.two_three import StringType, iteritems
 
 
 __all__ = ['Attr']
@@ -68,69 +68,6 @@ class Attr(Mapping):
         for key, value in iterable:
             self._set(key, value)
 
-    def get(self, key, default=None):
-        """
-        Get a value associated with a key if it exists, otherwise
-        return a default value.
-
-        key: The key associated with the desired value.
-        default: (optional, None) The value to return if the key is not
-            found.
-
-        NOTE: values returned by get will not be wrapped, even if
-        recursive is True.
-        """
-        return self._mapping.get(key, default)
-
-    if PYTHON_2:
-        def items(self):
-            """
-            Return a list of (key, value) tuples.
-
-            NOTE: values returned will not be wrapped, even if
-            recursive is True.
-            """
-            return self._mapping.items()
-
-        def keys(self):
-            """
-            Return a list of keys.
-            """
-            return self._mapping.keys()
-
-        def values(self):
-            """
-            Return a list of values.
-
-            NOTE: values returned will not be wrapped, even if
-            recursive is True.
-            """
-            return self._mapping.values()
-    else:
-        def items(self):
-            """
-            Return an iterable of (key, value) tuples.
-
-            NOTE: values returned will not be wrapped, even if
-            recursive is True.
-            """
-            return self._mapping.items()
-
-        def keys(self):
-            """
-            Return an iterable of keys.
-            """
-            return self._mapping.keys()
-
-        def values(self):
-            """
-            Return an iterable of values.
-
-            NOTE: values returned will not be wrapped, even if
-            recursive is True.
-            """
-            return self._mapping.values()
-
     def __getitem__(self, key):
         """
         Access a value associated with a key.
@@ -139,12 +76,6 @@ class Attr(Mapping):
         is True.
         """
         return self._mapping[key]
-
-    def __contains__(self, key):
-        """
-        Check if a key is contained with the object.
-        """
-        return key in self._mapping
 
     def __len__(self):
         """

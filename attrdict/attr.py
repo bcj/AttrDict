@@ -188,16 +188,19 @@ class Attr(Mapping):
         else:
             raise TypeError("Can not add new attribute")
 
-    def __delattr__(self, key):
+    def __delattr__(self, key, force=False):
         """
         Delete an attribute from the instance. But no, this is not
         allowered.
         """
-        raise TypeError(
-            "'{cls}' object does not support attribute deletion".format(
-                cls=self.__class__.__name__
+        if force:
+            super(Attr, self).__delattr__(key)
+        else:
+            raise TypeError(
+                "'{cls}' object does not support attribute deletion".format(
+                    cls=self.__class__.__name__
+                )
             )
-        )
 
     def _set(self, key, value):
         """

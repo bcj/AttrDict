@@ -13,7 +13,7 @@ PYTHON_2 = version_info < (3,)
 
 def test_attr():
     """
-    Run attr against the common tests.
+    Run Attr against the common tests.
     """
     from attrdict.attr import Attr
 
@@ -27,6 +27,24 @@ def test_attr():
     for test, description in common():
         test.description = description.format(cls='Attr')
         yield test, Attr, options
+
+
+def test_mutableattr():
+    """
+    Run MutableAttr against the common tests.
+    """
+    from attrdict.mutableattr import MutableAttr
+
+    options = {
+        'class': MutableAttr,
+        'mutable': True,
+        'method_missing': False,
+        'iter_methods': False
+    }
+
+    for test, description in common():
+        test.description = description.format(cls='MutableAttr')
+        yield test, MutableAttr, options
 
 
 def common():
@@ -335,7 +353,82 @@ def item_creation(constructor, options=None):
         assert_raises(TypeError, attribute)
         assert_raises(TypeError, item)
     else:
-        raise NotImplementedError("oops")
+        mapping = constructor()
+
+        # key that can be an attribute
+        mapping.foo = 'bar'
+
+        assert_equals(mapping.foo, 'bar')
+        assert_equals(mapping['foo'], 'bar')
+        assert_equals(mapping('foo'), 'bar')
+        assert_equals(mapping.get('foo'), 'bar')
+
+        mapping['baz'] = 'qux'
+
+        assert_equals(mapping.baz, 'qux')
+        assert_equals(mapping['baz'], 'qux')
+        assert_equals(mapping('baz'), 'qux')
+        assert_equals(mapping.get('baz'), 'qux')
+
+        # key that cannot be an attribute
+        assert_raises(TypeError, setattr, mapping, 1, 'one')
+
+        assert_true(1 not in mapping)
+
+        mapping[2] = 'two'
+
+        assert_equals(mapping[2], 'two')
+        assert_equals(mapping(2), 'two')
+        assert_equals(mapping.get(2), 'two')
+
+        # key that represents a hidden attribute
+        def add_foo():
+            "add _foo to mapping"
+            mapping._foo = '_bar'
+
+        assert_raises(TypeError, add_foo)
+        assert_false('_foo' in mapping)
+
+        mapping['_baz'] = 'qux'
+
+        def get_baz():
+            "get the _foo attribute"
+            return mapping._baz
+
+        assert_raises(AttributeError, get_baz)
+        assert_equals(mapping['_baz'], 'qux')
+        assert_equals(mapping('_baz'), 'qux')
+        assert_equals(mapping.get('_baz'), 'qux')
+
+        # key that represents an attribute that already exists
+        def add_get():
+            "add get to mapping"
+            mapping.get = 'attribute'
+
+        assert_raises(TypeError, add_foo)
+        assert_false('get' in mapping)
+
+        mapping['get'] = 'value'
+
+        assert_not_equals(mapping.get, 'value')
+        assert_equals(mapping['get'], 'value')
+        assert_equals(mapping('get'), 'value')
+        assert_equals(mapping.get('get'), 'value')
+
+        # rewrite a value
+        mapping.foo = 'manchu'
+
+        assert_equals(mapping.foo, 'manchu')
+        assert_equals(mapping['foo'], 'manchu')
+        assert_equals(mapping('foo'), 'manchu')
+        assert_equals(mapping.get('foo'), 'manchu')
+
+        mapping['bar'] = 'bell'
+
+        assert_equals(mapping.bar, 'bell')
+        assert_equals(mapping['bar'], 'bell')
+        assert_equals(mapping('bar'), 'bell')
+        assert_equals(mapping.get('bar'), 'bell')
 
 
 def item_deletion(constructor, options=None):
@@ -363,7 +456,37 @@ def item_deletion(constructor, options=None):
         assert_equals(mapping.foo, 'bar')
         assert_equals(mapping['foo'], 'bar')
     else:
-        raise NotImplementedError("oops")
+        mapping = constructor(
+            {'foo': 'bar', 'lorem': 'ipsum', '_hidden': True, 'get': 'value'}
+        )
+
+        del mapping.foo
+        assert_false('foo' in mapping)
+
+        del mapping['lorem']
+        assert_false('lorem' in mapping)
+
+        def del_hidden():
+            "delete _hidden"
+            del mapping._hidden
+
+        assert_raises(TypeError, del_hidden)
+        assert_true('_hidden' in mapping)
+
+        del mapping['_hidden']
+        assert_false('hidden' in mapping)
+
+        def del_get():
+            "delete get"
+            del mapping.get
+
+        assert_raises(TypeError, del_get)
+        assert_true('get' in mapping)
+        assert_true(mapping.get('get'), 'value')
+
+        del mapping['get']
+        assert_false('get' in mapping)
+        assert_true(mapping.get('get', 'banana'), 'banana')
 
 
 def sequence_type(constructor, _=None):

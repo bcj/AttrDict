@@ -2,7 +2,7 @@
 """
 Common tests that apply to multiple Attr-derived classes.
 """
-from collections import namedtuple
+from collections import namedtuple, ItemsView, KeysView, ValuesView
 import pickle
 from sys import version_info
 
@@ -238,12 +238,13 @@ def iteration(options):
                 assert_false(isinstance(iterable, list))
                 assert_true(hasattr(iterable, '__next__'))
     else:  # methods are actually views
-        for iterable in (actual_keys, actual_values, actual_items):
-            assert_false(isinstance(iterable, list))
-            # is there a good way to check if something is a view?
-
+        assert_true(isinstance(actual_keys, KeysView))
         assert_equals(frozenset(actual_keys), expected_keys)
+
+        assert_true(isinstance(actual_values, ValuesView))
         assert_equals(frozenset(actual_values), expected_values)
+
+        assert_true(isinstance(actual_items, ItemsView))
         assert_equals(frozenset(actual_items), expected_items)
 
     # make sure empty iteration works

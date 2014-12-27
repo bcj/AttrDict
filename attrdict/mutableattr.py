@@ -21,7 +21,7 @@ class MutableAttr(Attr, MutableMapping):
             if not self._valid_name(key):
                 raise TypeError("Invalid key: {0}".format(repr(key)))
 
-            self._set(key, value)
+            self._mapping[key] = value
 
     def __delattr__(self, key):
         """
@@ -30,33 +30,16 @@ class MutableAttr(Attr, MutableMapping):
         if not self._valid_name(key) or key not in self._mapping:
             raise TypeError("Invalid key: {0}".format(repr(key)))
 
-        self._delete(key)
+        del self._mapping[key]
 
     def __setitem__(self, key, value):
         """
         Add a key-value pair to the instance.
         """
-        self._set(key, value)
-
-    def __getitem__(self, key):
-        """
-        Get a value associated with a key.
-        """
-        return self._mapping[key]
+        self._mapping[key] = value
 
     def __delitem__(self, key):
         """
         Delete a key-value pair
         """
-        self._delete(key)
-
-    def _delete(self, key):
-        """
-        Delete an item from the MutableAttr.
-
-        key: The key to delete.
-        """
         del self._mapping[key]
-
-        if self._valid_name(key):
-            super(MutableAttr, self).__delattr__(key, True)

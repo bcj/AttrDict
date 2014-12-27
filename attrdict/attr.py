@@ -7,7 +7,7 @@ from collections import Mapping, Sequence
 import re
 
 from attrdict.merge import merge
-from attrdict.two_three import StringType, iteritems
+from attrdict.two_three import StringType
 
 
 __all__ = ['Attr']
@@ -46,8 +46,6 @@ class Attr(Mapping):
     attribute. For mutable types like list, this may result in
     hard-to-track bugs
     """
-    _default_sequence_type = tuple
-
     def __init__(self, items=None, sequence_type=tuple):
         if items is None:
             items = ()
@@ -65,14 +63,6 @@ class Attr(Mapping):
             mapping = dict(items)
 
         self.__setattr__('_mapping', mapping, force=True)
-
-        for key, value in iteritems(mapping):
-            if self._valid_name(key):
-                self.__setattr__(
-                    key,
-                    self._build(value, sequence_type=self._sequence_type),
-                    force=True
-                )
 
     def __getitem__(self, key):
         """
@@ -115,6 +105,21 @@ class Attr(Mapping):
             sequence_type=self._sequence_type
         )
 
+    def __getattr__(self, key):
+        """
+        Called if an attribute doesn't already exist.
+        """
+        if key in self._mapping and self._valid_name(key):
+            return self._build(
+                self._mapping[key], sequence_type=self._sequence_type
+            )
+
+        raise AttributeError(
+            "'{cls}' instance has no attribute '{name}'".format(
+                cls=self.__class__.__name__, name=key
+            )
+        )
+
     def __setattr__(self, key, value, force=False):
         """
         Add an attribute to the instance. The attribute will only be
@@ -130,30 +135,11 @@ class Attr(Mapping):
         Delete an attribute from the instance. But no, this is not
         allowered.
         """
-        if force:
-            super(Attr, self).__delattr__(key)
-        else:
-            raise TypeError(
-                "'{cls}' object does not support attribute deletion".format(
-                    cls=self.__class__.__name__
-                )
+        raise TypeError(
+            "'{cls}' object does not support attribute deletion".format(
+                cls=self.__class__.__name__
             )
-
-    def _set(self, key, value):
-        """
-        Add an item to the Attr.
-
-        key: The key to add.
-        value: The associated value to add.
-        """
-        self._mapping[key] = value
-
-        if self._valid_name(key):
-            self.__setattr__(
-                key,
-                self._build(value, sequence_type=self._sequence_type),
-                force=True
-            )
+        )
 
     def __add__(self, other):
         """

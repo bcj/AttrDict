@@ -27,34 +27,3 @@ def test_string_type():
 
     assert_true(isinstance('string', StringType))
     assert_true(isinstance(u'👻', StringType))
-
-
-def test_iteritems():
-    """
-    the two_three.iteritems method.
-    """
-    from attrdict.two_three import iteritems
-
-    mapping = {'foo': 'bar', '_lorem': '_ipsum'}
-
-    # make sure it gives all the items
-    actual = {}
-    for key, value in iteritems(mapping):
-        actual[key] = value
-
-    assert_equals(actual, mapping)
-
-    # make sure that iteritems is being used under Python 2
-    if PYTHON_2:
-        class MockMapping(object):
-            "A mapping that doesn't implement items"
-            def __init__(self, value):
-                self.value = value
-
-            def iteritems(self):
-                "The only way to get items"
-                return self.value
-
-        assert_equals(
-            iteritems(MockMapping({'test': 'passed'})), {'test': 'passed'}
-        )

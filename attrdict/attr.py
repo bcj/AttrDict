@@ -53,7 +53,7 @@ class Attr(Mapping):
         self.__setattr__('_sequence_type', sequence_type, force=True)
 
         # NOTE: we want to keep the original mapping if possible, that
-        # way, subclasses that implement mutability can subassign e.g.,:
+        # way, subclasses that implement mutability can subassign e.g.:
         # attr.foo.bar = 'baz'
 
         # items may be an iterable of two-tuples, or a mapping.
@@ -107,7 +107,7 @@ class Attr(Mapping):
 
     def __getattr__(self, key):
         """
-        Called if an attribute doesn't already exist.
+        Access a key-value pair as an attribute.
         """
         if key in self._mapping and self._valid_name(key):
             return self._build(

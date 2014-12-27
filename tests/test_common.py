@@ -404,7 +404,7 @@ def item_creation(options):
             "add get to mapping"
             mapping.get = 'attribute'
 
-        assert_raises(TypeError, add_foo)
+        assert_raises(TypeError, add_get)
         assert_false('get' in mapping)
 
         mapping['get'] = 'value'

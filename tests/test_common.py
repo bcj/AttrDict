@@ -2,6 +2,7 @@
 """
 Common tests that apply to multiple Attr-derived classes.
 """
+import copy
 from collections import namedtuple, ItemsView, KeysView, ValuesView
 import pickle
 from sys import version_info
@@ -56,7 +57,8 @@ def common(cls, constructor=None, mutable=False, method_missing=False,
     tests = (
         item_access, iteration, containment, length, equality,
         item_creation, item_deletion, sequence_type, addition,
-        to_kwargs, pickleing, pop, popitem, clear, update, setdefault
+        to_kwargs, pickleing, pop, popitem, clear, update, setdefault,
+        copying, deepcopying,
     )
 
     require_mutable = lambda options: options.mutable
@@ -67,6 +69,8 @@ def common(cls, constructor=None, mutable=False, method_missing=False,
         clear: require_mutable,
         update: require_mutable,
         setdefault: require_mutable,
+        copying: require_mutable,
+        deepcopying: require_mutable,
     }
 
     if constructor is None:
@@ -666,7 +670,7 @@ def popitem(options):
     expected = {'foo': 'bar', 'lorem': 'ipsum', 'alpha': 'beta'}
     actual = {}
 
-    mapping = options.constructor(expected)
+    mapping = options.constructor(dict(expected))
 
     for _ in range(3):
         key, value = mapping.popitem()
@@ -742,3 +746,38 @@ def setdefault(options):
     assert_equals(mapping.setdefault('get', 'value'), 'value')
     assert_not_equals(mapping.get, 'value')
     assert_equals(mapping['get'], 'value')
+
+
+def copying(options):
+    "copying a {cls}"
+    mapping_a = options.constructor({'foo': {'bar': 'baz'}})
+    mapping_b = copy.copy(mapping_a)
+    mapping_c = mapping_b
+
+    mapping_b.foo.lorem = 'ipsum'
+
+    assert_equals(mapping_a, mapping_b)
+    assert_equals(mapping_b, mapping_c)
+
+    mapping_c.alpha = 'bravo'
+
+
+def deepcopying(options):
+    "deepcopying a {cls}"
+    mapping_a = options.constructor({'foo': {'bar': 'baz'}})
+    mapping_b = copy.deepcopy(mapping_a)
+    mapping_c = mapping_b
+
+    mapping_b.foo.lorem = 'ipsum'
+
+    assert_not_equals(mapping_a, mapping_b)
+    assert_equals(mapping_b, mapping_c)
+
+    mapping_c.alpha = 'bravo'
+
+    assert_not_equals(mapping_a, mapping_b)
+    assert_equals(mapping_b, mapping_c)
+
+    assert_false('lorem' in mapping_a.foo)
+    assert_equals(mapping_a.setdefault('alpha', 'beta'), 'beta')
+    assert_equals(mapping_c.alpha, 'bravo')

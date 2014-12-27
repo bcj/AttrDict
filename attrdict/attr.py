@@ -54,19 +54,25 @@ class Attr(Mapping):
 
         self.__setattr__('_sequence_type', sequence_type, force=True)
 
-        # Subclasses may want to use a custom type for the underlying
-        # mapping object. Check before writing.
-        if not hasattr(self, '_mapping'):
-            self.__setattr__('_mapping', {}, force=True)
+        # NOTE: we want to keep the original mapping if possible, that
+        # way, subclasses that implement mutability can subassign e.g.,:
+        # attr.foo.bar = 'baz'
 
         # items may be an iterable of two-tuples, or a mapping.
         if isinstance(items, Mapping):
-            iterable = iteritems(items)
+            mapping = items
         else:
-            iterable = items  # already should be an iterable
+            mapping = dict(items)
 
-        for key, value in iterable:
-            self._set(key, value)
+        self.__setattr__('_mapping', mapping, force=True)
+
+        for key, value in iteritems(mapping):
+            if self._valid_name(key):
+                self.__setattr__(
+                    key,
+                    self._build(value, sequence_type=self._sequence_type),
+                    force=True
+                )
 
     def __getitem__(self, key):
         """
@@ -240,7 +246,12 @@ class Attr(Mapping):
         with any contained Mappings being converted to Attr.
         """
         if isinstance(obj, Mapping):
-            obj = cls(obj, sequence_type=sequence_type)
+            if hasattr(cls, '_constructor'):
+                constructor = cls._constructor
+            else:
+                constructor = cls
+
+            obj = constructor(obj, sequence_type=sequence_type)
         elif (isinstance(obj, Sequence) and
               not isinstance(obj, (StringType, bytes)) and
               sequence_type is not None):

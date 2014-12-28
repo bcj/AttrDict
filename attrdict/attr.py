@@ -130,7 +130,7 @@ class Attr(Mapping):
         else:
             raise TypeError("Can not add new attribute")
 
-    def __delattr__(self, key, force=False):
+    def __delattr__(self, name):
         """
         Delete an attribute from the instance. But no, this is not
         allowered.
@@ -152,6 +152,11 @@ class Attr(Mapping):
         if not isinstance(other, Mapping):
             return NotImplemented
 
+        if hasattr(self, '_constructor'):
+            constructor = self._constructor
+        else:
+            constructor = self.__class__
+
         sequence_type = tuple
         other_sequence_type = getattr(
             other, '_sequence_type', self._sequence_type
@@ -160,7 +165,7 @@ class Attr(Mapping):
         if other_sequence_type == self._sequence_type:
             sequence_type = self._sequence_type
 
-        return Attr(merge(self, other), sequence_type=sequence_type)
+        return constructor(merge(self, other), sequence_type=sequence_type)
 
     def __radd__(self, other):
         """
@@ -173,6 +178,11 @@ class Attr(Mapping):
         if not isinstance(other, Mapping):
             return NotImplemented
 
+        if hasattr(self, '_constructor'):
+            constructor = self._constructor
+        else:
+            constructor = self.__class__
+
         sequence_type = tuple
         other_sequence_type = getattr(
             other, '_sequence_type', self._sequence_type
@@ -181,7 +191,7 @@ class Attr(Mapping):
         if other_sequence_type == self._sequence_type:
             sequence_type = self._sequence_type
 
-        return Attr(merge(other, self), sequence_type=sequence_type)
+        return constructor(merge(other, self), sequence_type=sequence_type)
 
     def __repr__(self):
         """

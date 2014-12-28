@@ -8,6 +8,6 @@ python:
 install:
   - "pip install -r requirements-tests.txt"
   - "python setup.py install"
-script: "python setup.py nosetests && flake8 attrdict tests --exclude=attrdict/two_three.py"
+script: "python setup.py nosetests && flake8 attrdict tests"
 after_success:
   - coveralls

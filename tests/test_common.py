@@ -14,7 +14,8 @@ PYTHON_2 = version_info < (3,)
 
 Options = namedtuple(
     'Options',
-    ('cls', 'constructor', 'mutable', 'method_missing', 'iter_methods')
+    ('cls', 'constructor', 'mutable', 'method_missing', 'iter_methods',
+     'view_methods')
 )
 
 
@@ -28,7 +29,7 @@ def test_attr():
         yield test
 
 
-def test_mutable_attr():
+def test_mutableattr():
     """
     Run MutableAttr against the common tests.
     """
@@ -38,15 +39,25 @@ def test_mutable_attr():
         yield test
 
 
-def common(cls, constructor=None, mutable=False, method_missing=False,
-           iter_methods=False):
+def test_attrdict():
+    """
+    Run AttrDict against the common tests.
+    """
+    from attrdict.attrdictionary import AttrDict
+
+    view_methods = (2, 7) <= version_info < (3,)
+
+    for test in common(AttrDict, mutable=True, iter_methods=True,
+                       view_methods=view_methods):
+        yield test
+
+
+def common(cls, mutable=False, method_missing=False,
+           iter_methods=False, view_methods=False):
     """
     Iterates over tests common to multiple Attr-derived classes
 
     cls: The class that is being tested.
-    constructor: (optional, None) A special constructor that supports
-        0-1 positional arguments representing a mapping, and the named
-        argument 'sequence_type'. If not given, cls will be called
     mutable: (optional, False) Whether the object is supposed to be
         mutable.
     method_missing: (optional, False) Whether the class supports dynamic
@@ -73,10 +84,13 @@ def common(cls, constructor=None, mutable=False, method_missing=False,
         deepcopying: require_mutable,
     }
 
-    if constructor is None:
+    if hasattr(cls, '_constructor'):
+        constructor = cls._constructor
+    else:
         constructor = cls
 
-    options = Options(cls, constructor, mutable, method_missing, iter_methods)
+    options = Options(cls, constructor, mutable, method_missing,
+                      iter_methods, view_methods)
 
     for test in tests:
         if (test not in requirements) or requirements[test](options):
@@ -240,7 +254,41 @@ def iteration(options):
 
             for iterable in (actual_keys, actual_values, actual_items):
                 assert_false(isinstance(iterable, list))
-                assert_true(hasattr(iterable, '__next__'))
+
+            assert_equals(frozenset(actual_keys), expected_keys)
+            assert_equals(frozenset(actual_values), expected_values)
+            assert_equals(frozenset(actual_items), expected_items)
+
+        if options.view_methods:
+            actual_keys = mapping.viewkeys()
+            actual_values = mapping.viewvalues()
+            actual_items = mapping.viewitems()
+
+            # These views don't actually extend from collections.*View
+            for iterable in (actual_keys, actual_values, actual_items):
+                assert_false(isinstance(iterable, list))
+
+            assert_equals(frozenset(actual_keys), expected_keys)
+            assert_equals(frozenset(actual_values), expected_values)
+            assert_equals(frozenset(actual_items), expected_items)
+
+            # What happens if mapping isn't a dict
+            from attrdict.attr import Attr
+
+            mapping = options.constructor(Attr(raw))
+
+            actual_keys = mapping.viewkeys()
+            actual_values = mapping.viewvalues()
+            actual_items = mapping.viewitems()
+
+            # These views don't actually extend from collections.*View
+            for iterable in (actual_keys, actual_values, actual_items):
+                assert_false(isinstance(iterable, list))
+
+            assert_equals(frozenset(actual_keys), expected_keys)
+            assert_equals(frozenset(actual_values), expected_values)
+            assert_equals(frozenset(actual_items), expected_items)
+
     else:  # methods are actually views
         assert_true(isinstance(actual_keys, KeysView))
         assert_equals(frozenset(actual_keys), expected_keys)
@@ -769,6 +817,8 @@ def deepcopying(options):
     mapping_c = mapping_b
 
     mapping_b.foo.lorem = 'ipsum'
+
+    print(mapping_a, mapping_b, mapping_c)
 
     assert_not_equals(mapping_a, mapping_b)
     assert_equals(mapping_b, mapping_c)

@@ -23,14 +23,14 @@ class MutableAttr(Attr, MutableMapping):
 
             self._mapping[key] = value
 
-    def __delattr__(self, key):
+    def __delattr__(self, name):
         """
         Delete an attribute.
         """
-        if not self._valid_name(key) or key not in self._mapping:
-            raise TypeError("Invalid key: {0}".format(repr(key)))
+        if not self._valid_name(name) or name not in self._mapping:
+            raise TypeError("Invalid name: {0}".format(repr(name)))
 
-        del self._mapping[key]
+        del self._mapping[name]
 
     def __setitem__(self, key, value):
         """

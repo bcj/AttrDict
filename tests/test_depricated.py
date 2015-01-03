@@ -14,7 +14,7 @@ if PYTHON_2:
         """
         The now-depricated has_keys method
         """
-        from attrdict.attrdictionary import AttrDict
+        from attrdict.dictionary import AttrDict
 
         mapping = AttrDict(
             {'foo': 'bar', frozenset((1, 2, 3)): 'abc', 1: 2}

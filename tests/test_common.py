@@ -19,49 +19,6 @@ Options = namedtuple(
 )
 
 
-def test_attr():
-    """
-    Run Attr against the common tests.
-    """
-    from attrdict.attr import Attr
-
-    for test in common(Attr):
-        yield test
-
-
-def test_mutableattr():
-    """
-    Run MutableAttr against the common tests.
-    """
-    from attrdict.mutableattr import MutableAttr
-
-    for test in common(MutableAttr, mutable=True):
-        yield test
-
-
-def test_attrdict_():
-    """
-    Run AttrDict against the common tests.
-    """
-    from attrdict.attrdictionary import AttrDict
-
-    view_methods = (2, 7) <= version_info < (3,)
-
-    for test in common(AttrDict, constructor=AttrDict._constructor,
-                       mutable=True, iter_methods=True,
-                       view_methods=view_methods):
-        yield test
-
-
-def defaultattr_constructor(*args, **kwargs):
-    """
-    Create a DefaultAttr
-    """
-    from attrdict.defaultattr import DefaultAttr
-
-    return DefaultAttr(None, *args, **kwargs)
-
-
 def test_attrmap():
     """
     Run AttrMap against the common tests.
@@ -327,9 +284,9 @@ def iteration(options):
             assert_equals(frozenset(actual_items), expected_items)
 
             # What happens if mapping isn't a dict
-            from attrdict.attr import Attr
+            from attrdict.mapping import AttrMap
 
-            mapping = options.constructor(Attr(raw))
+            mapping = options.constructor(AttrMap(raw))
 
             actual_keys = mapping.viewkeys()
             actual_values = mapping.viewvalues()
@@ -879,8 +836,6 @@ def deepcopying(options):
     mapping_c = mapping_b
 
     mapping_b['foo']['lorem'] = 'ipsum'
-
-    print(mapping_a, mapping_b, mapping_c)
 
     assert_not_equals(mapping_a, mapping_b)
     assert_equals(mapping_b, mapping_c)

@@ -14,7 +14,7 @@ def test_init():
     """
     Create a new AttrDict.
     """
-    from attrdict.attrdictionary import AttrDict
+    from attrdict.dictionary import AttrDict
 
     # empty
     assert_equals(AttrDict(), {})
@@ -27,7 +27,6 @@ def test_init():
     assert_equals(AttrDict(foo='bar'), {'foo': 'bar'})
 
     # non-overlapping
-    assert_equals(AttrDict(None, foo='bar'), {'foo': 'bar'})
     assert_equals(AttrDict({}, foo='bar'), {'foo': 'bar'})
     assert_equals(AttrDict((), foo='bar'), {'foo': 'bar'})
 
@@ -60,27 +59,25 @@ def test_init():
 
 def test_copy():
     """
-    copy an AttrDict
+    Make a dict copy of an AttrDict.
     """
-    from attrdict.attrdictionary import AttrDict
+    from attrdict.dictionary import AttrDict
 
     mapping_a = AttrDict({'foo': {'bar': 'baz'}})
     mapping_b = mapping_a.copy()
     mapping_c = mapping_b
 
-    mapping_b.foo.lorem = 'ipsum'
+    mapping_b['foo']['lorem'] = 'ipsum'
 
     assert_equals(mapping_a, mapping_b)
     assert_equals(mapping_b, mapping_c)
-
-    mapping_c.alpha = 'bravo'
 
 
 def test_fromkeys():
     """
     make a new sequence from a set of keys.
     """
-    from attrdict.attrdictionary import AttrDict
+    from attrdict.dictionary import AttrDict
 
     # default value
     assert_equals(AttrDict.fromkeys(()), {})
@@ -94,13 +91,13 @@ def test_fromkeys():
     )
 
     # custom value
-    assert_equals(AttrDict.fromkeys((), value=0), {})
+    assert_equals(AttrDict.fromkeys((), 0), {})
     assert_equals(
         AttrDict.fromkeys({'foo': 'bar', 'baz': 'qux'}, 0),
         {'foo': 0, 'baz': 0}
     )
     assert_equals(
-        AttrDict.fromkeys(('foo', 'baz'), value=0),
+        AttrDict.fromkeys(('foo', 'baz'), 0),
         {'foo': 0, 'baz': 0}
     )
 
@@ -110,6 +107,6 @@ if not PYTHON_2:
         """
         The now-depricated has_keys method
         """
-        from attrdict.attrdictionary import AttrDict
+        from attrdict.dictionary import AttrDict
 
         assert_false(hasattr(AttrDict(), 'has_key'))

@@ -92,6 +92,22 @@ def test_attrdict():
         yield test
 
 
+def test_attrdefault():
+    """
+    Run AttrDefault against the common tests.
+    """
+    from attrdict.default import AttrDefault
+
+    def constructor(items=None, sequence_type=tuple):
+        if items is None:
+            items = {}
+
+        return AttrDefault(None, items, sequence_type)
+
+    for test in common(AttrDefault, constructor=constructor, mutable=True):
+        yield test
+
+
 def common(cls, constructor=None, mutable=False, method_missing=False,
            iter_methods=False, view_methods=False):
     """

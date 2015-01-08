@@ -10,7 +10,7 @@ from sys import version_info
 
 from nose.tools import (assert_equals, assert_not_equals,
                         assert_true, assert_false, assert_raises)
-from six import PY2
+import six
 
 from attrdict.mixins import Attr
 
@@ -186,7 +186,7 @@ def item_access(options):
         {
             'foo': 'bar',
             '_lorem': 'ipsum',
-            u'👻': 'boo',
+            six.u('👻'): 'boo',
             3: 'three',
             'get': 'not the function',
             'sub': {'alpha': 'bravo'},
@@ -209,13 +209,13 @@ def item_access(options):
     assert_equals(mapping.get(3), 'three')
 
     # key that cannot be an attribute (sadly)
-    assert_equals(mapping[u'👻'], 'boo')
-    if PY2:
-        assert_raises(UnicodeEncodeError, getattr, mapping, u'👻')
+    assert_equals(mapping[six.u('👻')], 'boo')
+    if six.PY2:
+        assert_raises(UnicodeEncodeError, getattr, mapping, six.u('👻'))
     else:
-        assert_raises(AttributeError, getattr, mapping, u'👻')
-    assert_equals(mapping(u'👻'), 'boo')
-    assert_equals(mapping.get(u'👻'), 'boo')
+        assert_raises(AttributeError, getattr, mapping, six.u('👻'))
+    assert_equals(mapping(six.u('👻')), 'boo')
+    assert_equals(mapping.get(six.u('👻')), 'boo')
 
     # key that represents a hidden attribute
     assert_equals(mapping['_lorem'], 'ipsum')
@@ -319,7 +319,7 @@ def iteration(options):
     actual_values = mapping.values()
     actual_items = mapping.items()
 
-    if PY2:
+    if six.PY2:
         for collection in (actual_keys, actual_values, actual_items):
             assert_true(isinstance(collection, list))
 

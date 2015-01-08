@@ -3,6 +3,8 @@ An implementation of MutableAttr.
 """
 from collections import Mapping
 
+import six
+
 from attrdict.mixins import MutableAttr
 
 
@@ -63,7 +65,7 @@ class AttrMap(MutableAttr):
         """
         Return a string representation of the object.
         """
-        return u"a{0}".format(repr(self._mapping))
+        return six.u("a{0}").format(repr(self._mapping))
 
     def __getstate__(self):
         """

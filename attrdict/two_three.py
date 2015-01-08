@@ -7,6 +7,9 @@ NOTE: If you make changes to this, please manually run flake8 against
 from sys import version_info
 
 
+__all__ = ['PYTHON_2', 'StringType']
+
+
 if version_info < (3,):
     PYTHON_2 = True
     StringType = basestring

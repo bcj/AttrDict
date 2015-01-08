@@ -6,6 +6,9 @@ from collections import Mapping
 from attrdict.mixins import MutableAttr
 
 
+__all__ = ['AttrMap']
+
+
 class AttrMap(MutableAttr):
     """
     An implementation of MutableAttr.

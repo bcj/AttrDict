@@ -9,6 +9,9 @@ from attrdict.merge import merge
 from attrdict.two_three import StringType
 
 
+__all__ = ['Attr', 'MutableAttr']
+
+
 class Attr(Mapping):
     """
     A mixin class for a mapping that allows for attribute-style access

@@ -4,6 +4,9 @@ A dict that implements MutableAttr.
 from attrdict.mixins import MutableAttr
 
 
+__all__ = ['AttrDict']
+
+
 class AttrDict(dict, MutableAttr):
     """
     A dict that implements MutableAttr.

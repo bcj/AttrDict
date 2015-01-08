@@ -6,6 +6,9 @@ from collections import Mapping
 from attrdict.mixins import MutableAttr
 
 
+__all__ = ['AttrDefault']
+
+
 class AttrDefault(MutableAttr):
     """
     An implementation of MutableAttr with defaultdict support

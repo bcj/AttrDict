@@ -4,6 +4,9 @@ A right-favoring Mapping merge.
 from collections import Mapping
 
 
+__all__ = ['merge']
+
+
 def merge(left, right):
     """
     Merge two mappings objects together, combining overlapping Mappings,

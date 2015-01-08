@@ -12,6 +12,8 @@ from nose.tools import (assert_equals, assert_not_equals,
                         assert_true, assert_false, assert_raises)
 from six import PY2
 
+from attrdict.mixins import Attr
+
 
 Options = namedtuple(
     'Options',
@@ -19,9 +21,68 @@ Options = namedtuple(
 )
 
 
+class AttrImpl(Attr):
+    """
+    An implementation of Attr.
+    """
+    def __init__(self, items=None, sequence_type=tuple):
+        if items is None:
+            items = {}
+        elif not isinstance(items, Mapping):
+            items = dict(items)
+
+        self._mapping = items
+        self._sequence_type = sequence_type
+
+    def _configuration(self):
+        """
+        The configuration for an attrmap instance.
+        """
+        return self._sequence_type
+
+    def __getitem__(self, key):
+        """
+        Access a value associated with a key.
+        """
+        return self._mapping[key]
+
+    def __len__(self):
+        """
+        Check the length of the mapping.
+        """
+        return len(self._mapping)
+
+    def __iter__(self):
+        """
+        Iterated through the keys.
+        """
+        return iter(self._mapping)
+
+    def __getstate__(self):
+        """
+        Serialize the object.
+        """
+        return (self._mapping, self._sequence_type)
+
+    def __setstate__(self, state):
+        """
+        Deserialize the object.
+        """
+        mapping, sequence_type = state
+        self._mapping = mapping
+        self._sequence_type = sequence_type
+
+    @classmethod
+    def _constructor(cls, mapping, configuration):
+        """
+        A standardized constructor.
+        """
+        return cls(mapping, sequence_type=configuration)
+
+
 def test_attr():
     """
-    Tests for an class that implements Attr
+    Tests for an class that implements Attr.
     """
     for test in common(AttrImpl, mutable=False):
         yield test
@@ -93,7 +154,7 @@ def common(cls, constructor=None, mutable=False, iter_methods=False,
     tests = (
         item_access, iteration, containment, length, equality,
         item_creation, item_deletion, sequence_typing, addition,
-        to_kwargs, pickleing,
+        to_kwargs, pickling,
     )
 
     mutable_tests = (
@@ -115,7 +176,9 @@ def common(cls, constructor=None, mutable=False, iter_methods=False,
 
 
 def item_access(options):
-    "Access items in {cls}."
+    """
+    Access items in {cls}.
+    """
     mapping = options.constructor(
         {
             'foo': 'bar',
@@ -319,7 +382,6 @@ def iteration(options):
 
 def containment(options):
     "Check whether {cls} contains keys"
-
     mapping = options.constructor(
         {'foo': 'bar', frozenset((1, 2, 3)): 'abc', 1: 2}
     )
@@ -340,7 +402,6 @@ def containment(options):
 
 def length(options):
     "Get the length of an {cls} instance"
-
     assert_equals(len(options.constructor()), 0)
     assert_equals(len(options.constructor({'foo': 'bar'})), 1)
     assert_equals(len(options.constructor({'foo': 'bar', 'baz': 'qux'})), 2)
@@ -414,7 +475,9 @@ def item_creation(options):
             pass  # may assign, but shouldn't assign to dict
 
         def item():
-            "Attempt to add an item"
+            """
+            Attempt to add an item.
+            """
             mapping['foo'] = 'bar'
 
         assert_raises(TypeError, item)
@@ -501,7 +564,6 @@ def item_creation(options):
 
 def item_deletion(options):
     "Remove a key-value from to an {cls}"
-
     if not options.mutable:
         mapping = options.constructor({'foo': 'bar'})
 
@@ -516,7 +578,9 @@ def item_deletion(options):
             raise AssertionError('deletion should fail')
 
         def item(mapping):
-            "Attempt to del an item"
+            """
+            Attempt to del an item
+            """
             del mapping['foo']
 
         assert_raises(TypeError, item, mapping)
@@ -698,7 +762,7 @@ def check_pickle_roundtrip(source, options, **kwargs):
     return loaded
 
 
-def pickleing(options):
+def pickling(options):
     "Pickle {cls}"
 
     empty = check_pickle_roundtrip(None, options)
@@ -863,67 +927,3 @@ def deepcopying(options):
     assert_false('lorem' in mapping_a.foo)
     assert_equals(mapping_a.setdefault('alpha', 'beta'), 'beta')
     assert_equals(mapping_c.alpha, 'bravo')
-
-
-try:
-    from attrdict.mixins import Attr
-
-    class AttrImpl(Attr):
-        """
-        An implementation of Attr.
-        """
-        def __init__(self, items=None, sequence_type=tuple):
-            if items is None:
-                items = {}
-            elif not isinstance(items, Mapping):
-                items = dict(items)
-
-            self._mapping = items
-            self._sequence_type = sequence_type
-
-        def _configuration(self):
-            """
-            The configuration for an attrmap instance.
-            """
-            return self._sequence_type
-
-        def __getitem__(self, key):
-            """
-            Access a value associated with a key.
-            """
-            return self._mapping[key]
-
-        def __len__(self):
-            """
-            Check the length of the mapping.
-            """
-            return len(self._mapping)
-
-        def __iter__(self):
-            """
-            Iterated through the keys.
-            """
-            return iter(self._mapping)
-
-        def __getstate__(self):
-            """
-            Serialize the object.
-            """
-            return (self._mapping, self._sequence_type)
-
-        def __setstate__(self, state):
-            """
-            Deserialize the object.
-            """
-            mapping, sequence_type = state
-            self._mapping = mapping
-            self._sequence_type = sequence_type
-
-        @classmethod
-        def _constructor(cls, mapping, configuration):
-            """
-            A standardized constructor.
-            """
-            return cls(mapping, sequence_type=configuration)
-except ImportError:
-    pass

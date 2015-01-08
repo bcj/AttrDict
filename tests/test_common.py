@@ -9,8 +9,8 @@ from sys import version_info
 
 from nose.tools import (assert_equals, assert_not_equals,
                         assert_true, assert_false, assert_raises)
+from six import PY2
 
-PYTHON_2 = version_info < (3,)
 
 Options = namedtuple(
     'Options',
@@ -140,7 +140,7 @@ def item_access(options):
 
     # key that cannot be an attribute (sadly)
     assert_equals(mapping[u'👻'], 'boo')
-    if PYTHON_2:
+    if PY2:
         assert_raises(UnicodeEncodeError, getattr, mapping, u'👻')
     else:
         assert_raises(AttributeError, getattr, mapping, u'👻')
@@ -250,7 +250,7 @@ def iteration(options):
     actual_values = mapping.values()
     actual_items = mapping.items()
 
-    if PYTHON_2:
+    if PY2:
         for collection in (actual_keys, actual_values, actual_items):
             assert_true(isinstance(collection, list))
 

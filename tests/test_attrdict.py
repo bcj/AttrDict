@@ -2,12 +2,8 @@
 """
 Tests for the AttrDict class.
 """
-from sys import version_info
-
 from nose.tools import assert_equals, assert_false
-
-
-PYTHON_2 = version_info < (3,)
+from six import PY2
 
 
 def test_init():
@@ -102,7 +98,7 @@ def test_fromkeys():
     )
 
 
-if not PYTHON_2:
+if not PY2:
     def test_has_key():
         """
         The now-depricated has_keys method

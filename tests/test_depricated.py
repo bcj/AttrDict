@@ -1,15 +1,11 @@
 """
 Tests for depricated methods.
 """
-from sys import version_info
-
 from nose.tools import assert_true, assert_false
+from six import PY2
 
 
-PYTHON_2 = version_info < (3,)
-
-
-if PYTHON_2:
+if PY2:
     def test_has_key():
         """
         The now-depricated has_keys method

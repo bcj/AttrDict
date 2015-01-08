@@ -17,7 +17,8 @@ from attrdict.mixins import Attr
 
 Options = namedtuple(
     'Options',
-    ('cls', 'constructor', 'mutable', 'iter_methods', 'view_methods')
+    ('cls', 'constructor', 'mutable', 'iter_methods', 'view_methods',
+     'recursive')
 )
 
 
@@ -117,7 +118,7 @@ def test_attrdict():
 
     for test in common(AttrDict, constructor=constructor,
                        mutable=True, iter_methods=True,
-                       view_methods=view_methods):
+                       view_methods=view_methods, recursive=False):
         yield test
 
 
@@ -141,7 +142,7 @@ def test_attrdefault():
 
 
 def common(cls, constructor=None, mutable=False, iter_methods=False,
-           view_methods=False):
+           view_methods=False, recursive=True):
     """
     Iterates over tests common to multiple Attr-derived classes
 
@@ -150,6 +151,9 @@ def common(cls, constructor=None, mutable=False, iter_methods=False,
         mutable.
     iter_methods: (optional, False) Whether the class implements
         iter<keys,values,items> under Python 2.
+    view_methods: (optional, False) Whether the class implements
+        view<keys,values,items> under Python 2.
+    recursive: (optional, True) Whether recursive assignment works.
     """
     tests = (
         item_access, iteration, containment, length, equality,
@@ -164,7 +168,8 @@ def common(cls, constructor=None, mutable=False, iter_methods=False,
     if constructor is None:
         constructor = cls
 
-    options = Options(cls, constructor, mutable, iter_methods, view_methods)
+    options = Options(cls, constructor, mutable, iter_methods, view_methods,
+                      recursive)
 
     if mutable:
         tests = chain(tests, mutable_tests)
@@ -176,9 +181,7 @@ def common(cls, constructor=None, mutable=False, iter_methods=False,
 
 
 def item_access(options):
-    """
-    Access items in {cls}.
-    """
+    """Access items in {cls}."""
     mapping = options.constructor(
         {
             'foo': 'bar',
@@ -560,6 +563,14 @@ def item_creation(options):
         assert_equals(mapping['bar'], 'bell')
         assert_equals(mapping('bar'), 'bell')
         assert_equals(mapping.get('bar'), 'bell')
+
+        if options.recursive:
+            recursed = options.constructor({'foo': {'bar': 'baz'}})
+
+            recursed.foo.bar = 'qux'
+            recursed.foo.alpha = 'bravo'
+
+            assert_equals(recursed, {'foo': {'bar': 'qux', 'alpha': 'bravo'}})
 
 
 def item_deletion(options):

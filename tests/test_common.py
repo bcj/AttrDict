@@ -14,8 +14,7 @@ from six import PY2
 
 Options = namedtuple(
     'Options',
-    ('cls', 'constructor', 'mutable', 'method_missing', 'iter_methods',
-     'view_methods')
+    ('cls', 'constructor', 'mutable', 'iter_methods', 'view_methods')
 )
 
 
@@ -71,16 +70,14 @@ def test_attrdefault():
         yield test
 
 
-def common(cls, constructor=None, mutable=False, method_missing=False,
-           iter_methods=False, view_methods=False):
+def common(cls, constructor=None, mutable=False, iter_methods=False,
+           view_methods=False):
     """
     Iterates over tests common to multiple Attr-derived classes
 
     cls: The class that is being tested.
     mutable: (optional, False) Whether the object is supposed to be
         mutable.
-    method_missing: (optional, False) Whether the class supports dynamic
-        creation of methods (e.g., defaultdict).
     iter_methods: (optional, False) Whether the class implements
         iter<keys,values,items> under Python 2.
     """
@@ -106,8 +103,7 @@ def common(cls, constructor=None, mutable=False, method_missing=False,
     if constructor is None:
         constructor = cls
 
-    options = Options(cls, constructor, mutable, method_missing,
-                      iter_methods, view_methods)
+    options = Options(cls, constructor, mutable, iter_methods, view_methods)
 
     for test in tests:
         if (test not in requirements) or requirements[test](options):
@@ -230,12 +226,11 @@ def item_access(options):
     assert_true(isinstance(mapping.get('list')[1], dict))
 
     # Nonexistent key
-    if not options.method_missing:
-        assert_raises(KeyError, lambda: mapping['fake'])
-        assert_raises(AttributeError, lambda: mapping.fake)
-        assert_raises(AttributeError, lambda: mapping('fake'))
-        assert_equals(mapping.get('fake'), None)
-        assert_equals(mapping.get('fake', 'bake'), 'bake')
+    assert_raises(KeyError, lambda: mapping['fake'])
+    assert_raises(AttributeError, lambda: mapping.fake)
+    assert_raises(AttributeError, lambda: mapping('fake'))
+    assert_equals(mapping.get('fake'), None)
+    assert_equals(mapping.get('fake', 'bake'), 'bake')
 
 
 def iteration(options):

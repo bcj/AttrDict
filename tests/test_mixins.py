@@ -52,3 +52,18 @@ def test_invalid_attributes():
     mapping._delattr('_key')
     assert_raises(AttributeError, lambda: mapping._key)
     assert_equals(mapping, {})
+
+
+def test_constructor():
+    """
+    _constructor MUST be implemented.
+    """
+    from attrdict.mixins import Attr
+
+    class AttrImpl(Attr):
+        """
+        An implementation of attr that doesn't implement _constructor.
+        """
+        pass
+
+    assert_raises(NotImplementedError, lambda: AttrImpl._constructor({}, ()))

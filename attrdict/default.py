@@ -97,6 +97,16 @@ class AttrDefault(MutableAttr):
 
         return value
 
+    def __repr__(self):
+        """
+        Return a string representation of the object.
+        """
+        return u"AttrDefault({default_factory}, {pass_key}, {mapping})".format(
+            default_factory=repr(self._default_factory),
+            pass_key=repr(self._pass_key),
+            mapping=repr(self._mapping),
+        )
+
     def __getstate__(self):
         """
         Serialize the object.

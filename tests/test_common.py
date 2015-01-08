@@ -38,6 +38,9 @@ def test_attrdict():
     view_methods = (2, 7) <= version_info < (3,)
 
     def constructor(items=None, sequence_type=tuple):
+        """
+        Build a new AttrDict.
+        """
         if items is None:
             items = {}
 
@@ -56,6 +59,9 @@ def test_attrdefault():
     from attrdict.default import AttrDefault
 
     def constructor(items=None, sequence_type=tuple):
+        """
+        Build a new AttrDefault.
+        """
         if items is None:
             items = {}
 
@@ -80,7 +86,7 @@ def common(cls, constructor=None, mutable=False, method_missing=False,
     """
     tests = (
         item_access, iteration, containment, length, equality,
-        item_creation, item_deletion, sequence_type, addition,
+        item_creation, item_deletion, sequence_typing, addition,
         to_kwargs, pickleing, pop, popitem, clear, update, setdefault,
         copying, deepcopying,
     )
@@ -551,7 +557,7 @@ def item_deletion(options):
         assert_true(mapping.get('get', 'banana'), 'banana')
 
 
-def sequence_type(options):
+def sequence_typing(options):
     "Does {cls} respect sequence type?"
     data = {'list': [{'foo': 'bar'}], 'tuple': ({'foo': 'bar'},)}
 

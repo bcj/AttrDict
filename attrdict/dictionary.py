@@ -14,8 +14,8 @@ class AttrDict(dict, MutableAttr):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
 
-        self.__setattr__('_sequence_type', tuple, force=True)
-        self.__setattr__('_allow_invalid_attributes', False, force=True)
+        self._setattr('_sequence_type', tuple)
+        self._setattr('_allow_invalid_attributes', False)
 
     def _configuration(self):
         """
@@ -39,12 +39,8 @@ class AttrDict(dict, MutableAttr):
         """
         mapping, sequence_type, allow_invalid_attributes = state
         self.update(mapping)
-        self.__setattr__('_sequence_type', sequence_type, force=True)
-        self.__setattr__(
-            '_allow_invalid_attributes',
-            allow_invalid_attributes,
-            force=True
-        )
+        self._setattr('_sequence_type', sequence_type)
+        self._setattr('_allow_invalid_attributes', allow_invalid_attributes)
 
     @classmethod
     def _constructor(cls, mapping, configuration):
@@ -52,6 +48,6 @@ class AttrDict(dict, MutableAttr):
         A standardized constructor.
         """
         attr = cls(mapping)
-        attr.__setattr__('_sequence_type', configuration, force=True)
+        attr._setattr('_sequence_type', configuration)
 
         return attr

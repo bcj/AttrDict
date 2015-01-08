@@ -1,5 +1,5 @@
 """
-An implementation of MutableAttr
+An implementation of MutableAttr.
 """
 from collections import Mapping
 
@@ -19,9 +19,9 @@ class AttrMap(MutableAttr):
         elif not isinstance(items, Mapping):
             items = dict(items)
 
-        self.__setattr__('_sequence_type', sequence_type, force=True)
-        self.__setattr__('_mapping', items, force=True)
-        self.__setattr__('_allow_invalid_attributes', False, force=True)
+        self._setattr('_sequence_type', sequence_type)
+        self._setattr('_mapping', items)
+        self._setattr('_allow_invalid_attributes', False)
 
     def _configuration(self):
         """
@@ -80,13 +80,9 @@ class AttrMap(MutableAttr):
         Deserialize the object.
         """
         mapping, sequence_type, allow_invalid_attributes = state
-        self.__setattr__('_mapping', mapping, force=True)
-        self.__setattr__('_sequence_type', sequence_type, force=True)
-        self.__setattr__(
-            '_allow_invalid_attributes',
-            allow_invalid_attributes,
-            force=True
-        )
+        self._setattr('_mapping', mapping)
+        self._setattr('_sequence_type', sequence_type)
+        self._setattr('_allow_invalid_attributes', allow_invalid_attributes)
 
     @classmethod
     def _constructor(cls, mapping, configuration):

@@ -20,11 +20,11 @@ class AttrDefault(MutableAttr):
         elif not isinstance(items, Mapping):
             items = dict(items)
 
-        self.__setattr__('_default_factory', default_factory, force=True)
-        self.__setattr__('_mapping', items, force=True)
-        self.__setattr__('_sequence_type', sequence_type, force=True)
-        self.__setattr__('_pass_key', pass_key, force=True)
-        self.__setattr__('_allow_invalid_attributes', False, force=True)
+        self._setattr('_default_factory', default_factory)
+        self._setattr('_mapping', items)
+        self._setattr('_sequence_type', sequence_type)
+        self._setattr('_pass_key', pass_key)
+        self._setattr('_allow_invalid_attributes', False)
 
     def _configuration(self):
         """
@@ -116,15 +116,11 @@ class AttrDefault(MutableAttr):
         (default_factory, mapping, sequence_type, pass_key,
          allow_invalid_attributes) = state
 
-        self.__setattr__('_default_factory', default_factory, force=True)
-        self.__setattr__('_mapping', mapping, force=True)
-        self.__setattr__('_sequence_type', sequence_type, force=True)
-        self.__setattr__('_pass_key', pass_key, force=True)
-        self.__setattr__(
-            '_allow_invalid_attributes',
-            allow_invalid_attributes,
-            force=True
-        )
+        self._setattr('_default_factory', default_factory)
+        self._setattr('_mapping', mapping)
+        self._setattr('_sequence_type', sequence_type)
+        self._setattr('_pass_key', pass_key)
+        self._setattr('_allow_invalid_attributes', allow_invalid_attributes)
 
     @classmethod
     def _constructor(cls, mapping, configuration):

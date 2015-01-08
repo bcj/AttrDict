@@ -159,19 +159,21 @@ class MutableAttr(Attr, MutableMapping):
     A mixin class for a mapping that allows for attribute-style access
     of values.
     """
-    def __setattr__(self, key, value, force=False):
+    def _setattr(self, key, value):
+        """
+        Add an attribute to the object, without attempting to add it as
+        a key to the mapping.
+        """
+        super(MutableAttr, self).__setattr__(key, value)
+
+    def __setattr__(self, key, value):
         """
         Add an attribute.
 
         key: The name of the attribute
         value: The attributes contents
-        as_item: (optional, True) If True, the attribute will be added
-            to the mapping if the key is a valid name.
-        force: (opational, False)
         """
-        if force:
-            super(MutableAttr, self).__setattr__(key, value)
-        elif self._valid_name(key):
+        if self._valid_name(key):
             self[key] = value
         elif getattr(self, '_allow_invalid_attributes', True):
             super(MutableAttr, self).__setattr__(key, value)
@@ -182,17 +184,20 @@ class MutableAttr(Attr, MutableMapping):
                 )
             )
 
+    def _delattr(self, key):
+        """
+        Delete an attribute from the object, without attempting to
+        remove it from the mapping.
+        """
+        super(MutableAttr, self).__delattr__(key)
+
     def __delattr__(self, key, force=False):
         """
         Delete an attribute.
 
         key: The name of the attribute
-        force: (optional, False) Delete the attribute from the class
-            instead of the mapping.
         """
-        if force:
-            super(MutableAttr, self).__delattr__(key)
-        elif self._valid_name(key):
+        if self._valid_name(key):
             del self[key]
         elif getattr(self, '_allow_invalid_attributes', True):
             super(MutableAttr, self).__delattr__(key)

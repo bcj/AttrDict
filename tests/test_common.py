@@ -3,7 +3,8 @@
 Common tests that apply to multiple Attr-derived classes.
 """
 import copy
-from collections import namedtuple, ItemsView, KeysView, ValuesView
+from collections import namedtuple, Mapping, ItemsView, KeysView, ValuesView
+from itertools import chain
 import pickle
 from sys import version_info
 
@@ -16,6 +17,14 @@ Options = namedtuple(
     'Options',
     ('cls', 'constructor', 'mutable', 'iter_methods', 'view_methods')
 )
+
+
+def test_attr():
+    """
+    Tests for an class that implements Attr
+    """
+    for test in common(AttrImpl, mutable=False):
+        yield test
 
 
 def test_attrmap():
@@ -84,32 +93,25 @@ def common(cls, constructor=None, mutable=False, iter_methods=False,
     tests = (
         item_access, iteration, containment, length, equality,
         item_creation, item_deletion, sequence_typing, addition,
-        to_kwargs, pickleing, pop, popitem, clear, update, setdefault,
-        copying, deepcopying,
+        to_kwargs, pickleing,
     )
 
-    require_mutable = lambda options: options.mutable
-
-    requirements = {
-        pop: require_mutable,
-        popitem: require_mutable,
-        clear: require_mutable,
-        update: require_mutable,
-        setdefault: require_mutable,
-        copying: require_mutable,
-        deepcopying: require_mutable,
-    }
+    mutable_tests = (
+        pop, popitem, clear, update, setdefault, copying, deepcopying,
+    )
 
     if constructor is None:
         constructor = cls
 
     options = Options(cls, constructor, mutable, iter_methods, view_methods)
 
-    for test in tests:
-        if (test not in requirements) or requirements[test](options):
-            test.description = test.__doc__.format(cls=cls.__name__)
+    if mutable:
+        tests = chain(tests, mutable_tests)
 
-            yield test, options
+    for test in tests:
+        test.description = test.__doc__.format(cls=cls.__name__)
+
+        yield test, options
 
 
 def item_access(options):
@@ -401,16 +403,23 @@ def item_creation(options):
     "Add a key-value pair to an {cls}"
 
     if not options.mutable:
-        def attribute():
-            "Attempt to add an attribute"
-            options.constructor().foo = 'bar'
+        # Assignment shouldn't add to the dict
+        mapping = options.constructor()
+
+        try:
+            mapping.foo = 'bar'
+        except TypeError:
+            pass  # may fail if setattr modified
+        else:
+            pass  # may assign, but shouldn't assign to dict
 
         def item():
             "Attempt to add an item"
-            options.constructor()['foo'] = 'bar'
+            mapping['foo'] = 'bar'
 
-        assert_raises(TypeError, attribute)
         assert_raises(TypeError, item)
+
+        assert_false('foo' in mapping)
     else:
         mapping = options.constructor()
 
@@ -496,15 +505,20 @@ def item_deletion(options):
     if not options.mutable:
         mapping = options.constructor({'foo': 'bar'})
 
-        def attribute(mapping):
-            "Attempt to del an attribute"
+        # could be a TypeError or an AttributeError
+        try:
             del mapping.foo
+        except TypeError:
+            pass
+        except AttributeError:
+            pass
+        else:
+            raise AssertionError('deletion should fail')
 
         def item(mapping):
             "Attempt to del an item"
             del mapping['foo']
 
-        assert_raises(TypeError, attribute, mapping)
         assert_raises(TypeError, item, mapping)
 
         assert_equals(mapping, {'foo': 'bar'})
@@ -849,3 +863,67 @@ def deepcopying(options):
     assert_false('lorem' in mapping_a.foo)
     assert_equals(mapping_a.setdefault('alpha', 'beta'), 'beta')
     assert_equals(mapping_c.alpha, 'bravo')
+
+
+try:
+    from attrdict.mixins import Attr
+
+    class AttrImpl(Attr):
+        """
+        An implementation of Attr.
+        """
+        def __init__(self, items=None, sequence_type=tuple):
+            if items is None:
+                items = {}
+            elif not isinstance(items, Mapping):
+                items = dict(items)
+
+            self._mapping = items
+            self._sequence_type = sequence_type
+
+        def _configuration(self):
+            """
+            The configuration for an attrmap instance.
+            """
+            return self._sequence_type
+
+        def __getitem__(self, key):
+            """
+            Access a value associated with a key.
+            """
+            return self._mapping[key]
+
+        def __len__(self):
+            """
+            Check the length of the mapping.
+            """
+            return len(self._mapping)
+
+        def __iter__(self):
+            """
+            Iterated through the keys.
+            """
+            return iter(self._mapping)
+
+        def __getstate__(self):
+            """
+            Serialize the object.
+            """
+            return (self._mapping, self._sequence_type)
+
+        def __setstate__(self, state):
+            """
+            Deserialize the object.
+            """
+            mapping, sequence_type = state
+            self._mapping = mapping
+            self._sequence_type = sequence_type
+
+        @classmethod
+        def _constructor(cls, mapping, configuration):
+            """
+            A standardized constructor.
+            """
+            return cls(mapping, sequence_type=configuration)
+except ImportError:
+    pass

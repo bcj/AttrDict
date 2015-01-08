@@ -41,7 +41,7 @@ class AttrDefault(MutableAttr):
         """
         if key in self._mapping:
             return self._mapping[key]
-        elif self._default_factory:
+        elif self._default_factory is not None:
             return self.__missing__(key)
 
         raise KeyError(key)
@@ -70,30 +70,14 @@ class AttrDefault(MutableAttr):
         """
         return iter(self._mapping)
 
-    def __getattr__(self, key):
-        """
-        Access a key-value pair as an attribute.
-        """
-        if self._valid_name(key):
-            if key in self:
-                return self._build(self._mapping[key])
-            elif self._default_factory:
-                return self._build(self.__missing__(key))
-
-        raise AttributeError(
-            "'{cls}' instance has no attribute '{name}'".format(
-                cls=self.__class__.__name__, name=key
-            )
-        )
-
     def __missing__(self, key):
         """
         Add a missing element.
         """
         if self._pass_key:
-            self._mapping[key] = value = self._default_factory(key)
+            self[key] = value = self._default_factory(key)
         else:
-            self._mapping[key] = value = self._default_factory()
+            self[key] = value = self._default_factory()
 
         return value
 

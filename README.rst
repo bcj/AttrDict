@@ -17,7 +17,7 @@ to be accessed both as keys and as attributes::
     > a['foo']
     'bar'
 
-With this, you can easily create convenient, heirarchical settings
+With this, you can easily create convenient, hierarchical settings
 objects.
 
 ::
@@ -115,7 +115,7 @@ dynamically access any key as an attribute)::
 
 Merging
 -------
-AttrDicts can be merged with eachother or other dict objects using the
+AttrDicts can be merged with each other or other dict objects using the
 ``+`` operator. For conflicting keys, the right dict's value will be
 preferred, but in the case of two dictionary values, they will be
 recursively merged::
@@ -137,7 +137,7 @@ Sequences
 By default, items in non-string Sequences (e.g. lists, tuples) will be
 converted to AttrDicts::
 
-    > adict = AttrDict({'list': [{'value': 1}, 'value': 2]})
+    > adict = AttrDict({'list': [{'value': 1}, {'value': 2}]})
     > for element in adict.list:
     >     element.value
     1
@@ -145,7 +145,7 @@ converted to AttrDicts::
 
 This will not occur if you access the AttrDict as a dictionary::
 
-    > adict = AttrDict({'list': [{'value': 1}, 'value': 2]})
+    > adict = AttrDict({'list': [{'value': 1}, {'value': 2}]})
     > for element in adict['list']:
     >     isinstance(element, AttrDict)
     False
@@ -154,8 +154,8 @@ This will not occur if you access the AttrDict as a dictionary::
 To disable this behavior globally, pass the attribute ``recursive=False`` to
 the constructor::
 
-    > adict = AttrDict({'list': [{'value': 1}, 'value': 2]}, recursive=False)
-    > for element in adict['list']:
+    > adict = AttrDict({'list': [{'value': 1}, {'value': 2}]}, recursive=False)
+    > for element in adict.list:
     >     isinstance(element, AttrDict)
     False
     False
@@ -191,7 +191,7 @@ easier::
     settings = load('settings.json')
 
 By default, ``load`` uses ``json.load`` to load the settings file, but this can
-be overrided by passing ``load_function=YOUR_LOAD_FUNCTION``.
+be overridden by passing ``load_function=YOUR_LOAD_FUNCTION``.
 
 ``load`` supports loading from multiple files at once. This allows for
 overriding of default settings, e.g.::

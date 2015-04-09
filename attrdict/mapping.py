@@ -65,7 +65,10 @@ class AttrMap(MutableAttr):
         """
         Return a string representation of the object.
         """
-        return six.u("a{0}").format(repr(self._mapping))
+        # sequence type seems like more trouble than it is worth.
+        # If people want full serialization, they can pickle, and in
+        # 99% of cases, sequence_type won't change anyway
+        return six.u("AttrMap({mapping})").format(mapping=repr(self._mapping))
 
     def __getstate__(self):
         """

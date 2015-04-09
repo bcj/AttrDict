@@ -98,6 +98,23 @@ def test_fromkeys():
     )
 
 
+def test_repr():
+    """
+    repr(AttrDict)
+    """
+    from attrdict.dictionary import AttrDict
+
+    assert_equals(repr(AttrDict()), "AttrDict({})")
+    assert_equals(repr(AttrDict({'foo': 'bar'})), "AttrDict({'foo': 'bar'})")
+    assert_equals(
+        repr(AttrDict({1: {'foo': 'bar'}})), "AttrDict({1: {'foo': 'bar'}})"
+    )
+    assert_equals(
+        repr(AttrDict({1: AttrDict({'foo': 'bar'})})),
+        "AttrDict({1: AttrDict({'foo': 'bar'})})"
+    )
+
+
 if not PY2:
     def test_has_key():
         """

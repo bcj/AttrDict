@@ -38,11 +38,6 @@ Or from Github::
     $ cd AttrDict
     $ python setup.py install
 
-Documentation
-=============
-
-Documentation is available at http://attrdict.readthedocs.org/en/latest/
-
 Basic Usage
 ===========
 AttrDict comes with three different classes, `AttrMap`, `AttrDict`, and
@@ -146,12 +141,7 @@ AttrDefault also has a `pass_key` option that passes the supplied key to the
 
 Merging
 -------
-All three Attr classes
-
-
-Merging
--------
-AttrDicts can be merged with each other or other dict objects using the
+All three Attr classes can be merged with eachother or other Mappings using the
 ``+`` operator. For conflicting keys, the right dict's value will be
 preferred, but in the case of two dictionary values, they will be
 recursively merged::
@@ -199,54 +189,6 @@ the constructor::
 When merging an AttrDict with another mapping, this behavior will be disabled
 if at least one of the merged items is an AttrDict that has set ``recursive``
 to ``False``.
-
-DefaultDict
-===========
-
-AttrDict supports defaultdict-style automatic creation of attributes::
-
-    > adict = AttrDict(default_factory=list)
-    > adict.foo
-    []
-
-Furthermore, if ``pass_key=True``, then the key will be passed to the function
-used when creating the value::
-
-    > adict = AttrDict(default_factory=lambda value: value.upper(), pass_key=True)
-    > adict.foo
-    'FOO'
-
-load
-====
-A common usage for AttrDict is to use it in combination with settings files to
-create hierarchical settings. attrdict comes with a load function to make this
-easier::
-
-    from attrdict import load
-
-    settings = load('settings.json')
-
-By default, ``load`` uses ``json.load`` to load the settings file, but this can
-be overridden by passing ``load_function=YOUR_LOAD_FUNCTION``.
-
-``load`` supports loading from multiple files at once. This allows for
-overriding of default settings, e.g.::
-
-    from attrdict import load
-    from yaml import safe_load
-
-    # config.yaml =
-    # emergency:
-    #   email: everyone@example.com
-    #   message: Something went wrong
-    #
-    # user.yaml =
-    # emergency:
-    #   email: user@example.com
-    settings = load('config.yaml', 'user.yaml', load_function=safe_load)
-
-    assert settings.email == 'user@example.com'
-    assert settings.message == 'Something went wrong'
 
 License
 =======

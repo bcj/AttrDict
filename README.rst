@@ -6,9 +6,8 @@ AttrDict
 .. image:: https://coveralls.io/repos/bcj/AttrDict/badge.png?branch=master
   :target: https://coveralls.io/r/bcj/AttrDict?branch=master
 
-
-AttrDict is a 2.6, 2.7, 3-compatible dictionary that allows its elements
-to be accessed both as keys and as attributes::
+AttrDict is an MIT-licensed library that provides mapping objects that allow
+their elements to be accessed both as keys and as attributes::
 
     > from attrdict import AttrDict
     > a = AttrDict({'foo': 'bar'})
@@ -17,18 +16,15 @@ to be accessed both as keys and as attributes::
     > a['foo']
     'bar'
 
-With this, you can easily create convenient, hierarchical settings
-objects.
+Attribute access makes it easy to create convenient, hierarchical settings
+objects::
 
-::
-
-    with open('settings.yaml', 'r') as fileobj:
+    with open('settings.yaml') as fileobj:
         settings = AttrDict(yaml.safe_load(fileobj))
 
     cursor = connect(**settings.db.credentials).cursor()
 
-    cursor.execute("SELECT column FROM table");
-
+    cursor.execute("SELECT column FROM table;")
 
 Installation
 ============
@@ -45,73 +41,113 @@ Or from Github::
 Documentation
 =============
 
-Documentation is available at https://github.com/bcj/AttrDict
+Documentation is available at http://attrdict.readthedocs.org/en/latest/
 
-Usage
-=====
-Creation
---------
-An empty AttrDict can be created with::
+Basic Usage
+===========
+AttrDict comes with three different classes, `AttrMap`, `AttrDict`, and
+`AttrDefault`. They are all fairly similar, as they all are MutableMappings (
+read: dictionaries) that allow creating, accessing, and deleting key-value
+pairs as attributes.
 
-    a = AttrDict()
+Valid Names
+-----------
+Any key can be used as an attribute as long as:
 
-Or, you can pass an existing ``dict`` (or other type of ``Mapping`` object)::
+#. The key represents a valid attribute (i.e., it is a string comprised only of
+   alphanumeric characters and underscores that doesn't start with a number)
+#. The key represents a public attribute (i.e., it doesn't start with an
+   underscore). This is done (in part) so that implementation changes between
+   minor and micro versions don't force major version changes.
+#. The key does not shadow a class attribute (e.g., get).
 
-    a = AttrDict({'foo': 'bar'})
+Attributes vs. Keys
+-------------------
+There is a minor difference between accessing a value as an attribute vs.
+accessing it as a key, is that when a dict is accessed as an attribute, it will
+automatically be converted to an Attr object. This allows you to recursively
+access keys::
 
-NOTE: Unlike ``dict``, AttrDict will not clone on creation. AttrDict's
-internal dictionary will be the same instance as the dict passed in.
-
-Access
-------
-AttrDict can be used *exactly* like a normal dict::
-
-    > a = AttrDict()
-    > a['foo'] = 'bar'
-    > a['foo']
-    'bar'
-    > '{foo}'.format(**a)
-    'bar'
-    > del a['foo']
-    > a.get('foo', 'default')
-    'default'
-
-AttrDict can also have it's keys manipulated as attributes to the object::
-
-    > a = AttrDict()
-    > a.foo = 'bar'
-    > a.foo
-    'bar'
-    > del a.foo
-
-Both methods operate on the same underlying object, so operations are
-interchangeable. The only difference between the two methods is that
-where dict-style access would return a dict, attribute-style access will
-return an AttrDict. This allows recursive attribute-style access::
-
-    > a = AttrDict({'foo': {'bar': 'baz'}})
-    > a.foo.bar
+    > attr = AttrDict({'foo': {'bar': 'baz'}})
+    > attr.foo.bar
     'baz'
-    > a['foo'].bar
-    AttributeError: 'dict' object has no attribute 'bar'
 
-There are some valid keys that cannot be accessed as attributes. To be
-accessed as an attribute, a key must:
+Relatedly, by default, sequence types that aren't `bytes`, `str`, or `unicode`
+(e.g., lists, tuples) will automatically be converted to tuples, with any
+mappings converted to Attrs::
 
- * be a string
-
- * start with an alphabetic character
-
- * be comprised solely of alphanumeric characters and underscores
-
- * not map to an existing attribute name (e.g., get, items)
-
-To access these attributes while retaining an AttrDict wrapper (or to
-dynamically access any key as an attribute)::
-
-    > a = AttrDict({'_foo': {'bar': 'baz'}})
-    > a('_foo').bar
+    > attr = AttrDict({'foo': [{'bar': 'baz'}, {'bar': 'qux'}]})
+    > for sub_attr in attr.foo:
+    >     print(subattr.foo)
     'baz'
+    'qux'
+
+To get this recursive functionality for keys that cannot be used as attributes,
+you can replicate the behavior by calling the Attr object::
+
+    > attr = AttrDict({1: {'two': 3}})
+    > attr(1).two
+    3
+
+Classes
+-------
+AttrDict comes with three different objects, `AttrMap`, `AttrDict`, and
+`AttrDefault`.
+
+AttrMap
+^^^^^^^
+The most basic implementation. Use this if you want to limit the number of
+invalid keys, or otherwise cannot use `AttrDict`
+
+AttrDict
+^^^^^^^^
+An Attr object that subclasses `dict`. You should be able to use this
+absolutely anywhere you can use a `dict`. While this is probably the class you
+want to use, there are a few caveats that follow from this being a `dict` under
+the hood.
+
+The `copy` method (which returns a shallow copy of the mapping) returns a
+`dict` instead of an `AttrDict`.
+
+Recursive attribute access results in a shallow copy, so recursive assignment
+will fail (as you will be writing to a copy of that dictionary)::
+
+    > attr = AttrDict('foo': {})
+    > attr.foo.bar = 'baz'
+    > attr.foo
+    {}
+
+Assignment as keys will still work::
+
+    > attr = AttrDict('foo': {})
+    > attr['foo']['bar'] = 'baz'
+    > attr.foo
+    {'bar': 'baz'}
+
+If either of these caveats are deal-breakers, or you don't need your object to
+be a `dict`, consider using `AttrMap` instead.
+
+AttrDefault
+^^^^^^^^^^^
+At Attr object that behaves like a `defaultdict`. This allows on-the-fly,
+automatic key creation::
+
+    > attr = AttrDefault(int, {})
+    > attr.foo += 1
+    > attr.foo
+    1
+
+AttrDefault also has a `pass_key` option that passes the supplied key to the
+`default_factory`::
+
+    > attr = AttrDefault(sorted, {}, pass_key=True)
+    > attr.banana
+    ['a', 'a', 'a', 'b', 'n', 'n']
+
+Merging
+-------
+All three Attr classes
+
 
 Merging
 -------

@@ -11,3 +11,4 @@ v1.0.0, 2014/08/18 -- Development Status :: 5 - Production/Stable
 v1.1.0, 2014/10/29 -- has_key support to match python2 dicts (by Nikolaos-Digenis Karagiannis @Digenis)
 v1.2.0, 2014/11/26 -- Happy U.S. Thanksgiving, now you can pickle AttrDict! (by @jtratner), bugfix: default_factory will no longer be erroneously called when accessing private attributes.
 v2.0,   2015/04/09 -- Happy PyCon. An almost-complete rewrite. Hopefully in a good way
+v2.0.1  2019/02/01 -- Haven't used or looked at this in years so updating tests to the current version of python and then marking it inactive.

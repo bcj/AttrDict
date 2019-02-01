@@ -73,7 +73,7 @@ mappings converted to Attrs::
 
     > attr = AttrDict({'foo': [{'bar': 'baz'}, {'bar': 'qux'}]})
     > for sub_attr in attr.foo:
-    >     print(subattr.foo)
+    >     print(sub_attr.foo)
     'baz'
     'qux'
 
